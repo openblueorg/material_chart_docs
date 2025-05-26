@@ -33,8 +33,18 @@ class LineChartWidget extends StatefulWidget {
 class _LineChartWidgetState extends State<LineChartWidget> {
   int _selectedExample = 0;
   bool _showCode = false;
-  final bool _animateChart = true;
-  Key _chartKey = UniqueKey(); // Add key for forcing chart rebuild
+  bool _showCustomization = false;
+  Key _chartKey = UniqueKey();
+
+  // Customizable properties
+  double _strokeWidth = 3.0;
+  double _pointRadius = 6.0;
+  bool _showPoints = true;
+  bool _showGrid = true;
+  Color _selectedLineColor = AppColors.primary;
+  Color _selectedPointColor = AppColors.primary;
+  Color _selectedGridColor = AppColors.border;
+  Color _selectedBackgroundColor = Colors.transparent;
 
   // Sample data sets for different examples
   final List<Map<String, dynamic>> _examples = [
@@ -108,8 +118,8 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.1),
-            AppColors.accent.withOpacity(0.05),
+            AppColors.primary.withValues(alpha: 0.1),
+            AppColors.accent.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -214,21 +224,23 @@ class _LineChartWidgetState extends State<LineChartWidget> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             child: Center(
               child: MaterialChartLine(
-                key: _chartKey, // Use dynamic key for forcing rebuild
+                key: _chartKey,
                 data: _examples[_selectedExample]['data'],
                 width: 600,
                 height: 250,
                 style: LineChartStyle(
-                  lineColor: _examples[_selectedExample]['color'],
-                  pointColor: _examples[_selectedExample]['color'],
-                  backgroundColor: Colors.transparent,
-                  gridColor: AppColors.border,
-                  strokeWidth: 3,
-                  pointRadius: 6,
+                  lineColor: _selectedLineColor,
+                  pointColor: _selectedPointColor,
+                  backgroundColor: _selectedBackgroundColor,
+                  gridColor: _selectedGridColor,
+                  strokeWidth: _strokeWidth,
+                  pointRadius: _pointRadius,
                   labelStyle: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -237,8 +249,8 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                   animationDuration: const Duration(milliseconds: 2000),
                   animationCurve: Curves.easeOutCubic,
                 ),
-                showPoints: true,
-                showGrid: true,
+                showPoints: _showPoints,
+                showGrid: _showGrid,
                 padding: const EdgeInsets.all(20),
                 onAnimationComplete: () {
                   // Animation completed callback
@@ -251,6 +263,10 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           if (_showCode) ...[
             const SizedBox(height: 16),
             _buildCurrentExampleCode(),
+          ],
+          if (_showCustomization) ...[
+            const SizedBox(height: 16),
+            _buildCustomizationPanel(),
           ],
         ],
       ),
@@ -273,7 +289,9 @@ class _LineChartWidgetState extends State<LineChartWidget> {
             onTap: () {
               setState(() {
                 _selectedExample = index;
-                _chartKey = UniqueKey(); // Generate new key for animation
+                _chartKey = UniqueKey();
+                _selectedLineColor = _examples[_selectedExample]['color'];
+                _selectedPointColor = _examples[_selectedExample]['color'];
               });
             },
             child: Container(
@@ -302,9 +320,16 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       children: [
         _buildControlButton('Replay Animation', Icons.replay, () {
           setState(() {
-            _chartKey = UniqueKey(); // Generate new key to force rebuild
+            _chartKey = UniqueKey();
           });
         }),
+        const SizedBox(width: 12),
+        _buildControlButton(
+          'Customize',
+          Icons.tune,
+          () => setState(() => _showCustomization = !_showCustomization),
+          isActive: _showCustomization,
+        ),
         const SizedBox(width: 12),
         _buildControlButton(
           'View Code',
@@ -332,7 +357,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           decoration: BoxDecoration(
             color:
                 isActive
-                    ? AppColors.primary.withOpacity(0.1)
+                    ? AppColors.primary.withValues(alpha: 0.1)
                     : AppColors.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
@@ -359,6 +384,392 @@ class _LineChartWidgetState extends State<LineChartWidget> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentExampleCode() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.code, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Current Example Code',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+              const Spacer(),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => _copyToClipboard(_getCurrentExampleCode()),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.copy, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Copy',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.3),
+              ),
+            ),
+            child: SelectableText(
+              _getCurrentExampleCode(),
+              style: const TextStyle(
+                fontSize: 12,
+                fontFamily: 'monospace',
+                color: Color(0xFFD4D4D4),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomizationPanel() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.tune, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Chart Customization',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+              const Spacer(),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: _resetToDefaults,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.refresh, size: 14, color: AppColors.accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Controls Grid
+          Row(
+            children: [
+              Expanded(child: _buildSliderControl()),
+              const SizedBox(width: 20),
+              Expanded(child: _buildToggleControls()),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+          _buildColorControls(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliderControl() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Line & Points',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Stroke Width
+        _buildSlider(
+          'Line Thickness',
+          _strokeWidth,
+          1.0,
+          8.0,
+          (value) => setState(() => _strokeWidth = value),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Point Radius
+        _buildSlider(
+          'Point Size',
+          _pointRadius,
+          2.0,
+          12.0,
+          (value) => setState(() => _pointRadius = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              value.toStringAsFixed(1),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+            activeTrackColor: AppColors.primary,
+            inactiveTrackColor: AppColors.border,
+            thumbColor: AppColors.primary,
+          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleControls() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Display Options',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        _buildToggle(
+          'Show Points',
+          _showPoints,
+          (value) => setState(() => _showPoints = value),
+        ),
+        const SizedBox(height: 8),
+        _buildToggle(
+          'Show Grid',
+          _showGrid,
+          (value) => setState(() => _showGrid = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggle(String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        const Spacer(),
+        Transform.scale(
+          scale: 0.8,
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorControls() {
+    final colors = [
+      AppColors.primary,
+      Colors.orange,
+      Colors.green,
+      Colors.red,
+      Colors.purple,
+      Colors.teal,
+      Colors.indigo,
+      Colors.pink,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Colors',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text(
+              'Line & Points',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Wrap(
+                spacing: 6,
+                children:
+                    colors
+                        .map(
+                          (color) => _buildColorButton(
+                            color,
+                            _selectedLineColor,
+                            (selectedColor) {
+                              setState(() {
+                                _selectedLineColor = selectedColor;
+                                _selectedPointColor = selectedColor;
+                              });
+                            },
+                          ),
+                        )
+                        .toList(),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorButton(
+    Color color,
+    Color selectedColor,
+    ValueChanged<Color> onTap,
+  ) {
+    final isSelected = color == selectedColor;
+    return GestureDetector(
+      onTap: () => onTap(color),
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? AppColors.textPrimary : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+          ],
+        ),
+        child:
+            isSelected
+                ? const Icon(Icons.check, size: 14, color: Colors.white)
+                : null,
       ),
     );
   }
@@ -393,7 +804,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Main Widget Properties
         _buildPropertySection('Widget Properties', [
           {
             'name': 'data',
@@ -447,7 +857,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
         const SizedBox(height: 20),
 
-        // LineChartStyle Properties
         _buildPropertySection('Style Properties', [
           {
             'name': 'lineColor',
@@ -501,7 +910,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
         const SizedBox(height: 20),
 
-        // ChartData Properties
         _buildPropertySection('Data Model', [
           {
             'name': 'value',
@@ -540,7 +948,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border.withOpacity(0.5)),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           ),
           child: Column(
             children:
@@ -564,13 +972,14 @@ class _LineChartWidgetState extends State<LineChartWidget> {
             isLast
                 ? null
                 : Border(
-                  bottom: BorderSide(color: AppColors.border.withOpacity(0.3)),
+                  bottom: BorderSide(
+                    color: AppColors.border.withValues(alpha: 0.3),
+                  ),
                 ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Property name and type
           Expanded(
             flex: 2,
             child: Column(
@@ -595,7 +1004,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(3),
                         ),
                         child: const Text(
@@ -626,7 +1035,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
           const SizedBox(width: 16),
 
-          // Description
           Expanded(
             flex: 3,
             child: Text(
@@ -669,14 +1077,14 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () => _copyToClipboard(_getCurrentExampleCode()),
+                  onTap: () => _copyToClipboard(_getBasicExample()),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -729,7 +1137,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           decoration: BoxDecoration(
             color: const Color(0xFF1E1E1E),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border.withOpacity(0.3)),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
           ),
           child: SelectableText(
             code,
@@ -804,7 +1212,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -845,86 +1253,17 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     );
   }
 
-  Widget _buildCurrentExampleCode() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.code, size: 16, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Current Example Code',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-              const Spacer(),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  onTap: () => _copyToClipboard(_getCurrentExampleCode()),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.copy, size: 14, color: AppColors.primary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Copy',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border.withOpacity(0.3)),
-            ),
-            child: SelectableText(
-              _getCurrentExampleCode(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontFamily: 'monospace',
-                color: Color(0xFFD4D4D4),
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _resetToDefaults() {
+    setState(() {
+      _strokeWidth = 3.0;
+      _pointRadius = 6.0;
+      _showPoints = true;
+      _showGrid = true;
+      _selectedLineColor = _examples[_selectedExample]['color'];
+      _selectedPointColor = _examples[_selectedExample]['color'];
+      _selectedGridColor = AppColors.border;
+      _selectedBackgroundColor = Colors.transparent;
+    });
   }
 
   String _getCurrentExampleCode() {
@@ -936,9 +1275,10 @@ class _LineChartWidgetState extends State<LineChartWidget> {
         )
         .join(',\n');
 
-    final colorName = _getColorName(currentExample['color']);
+    final lineColorName = _getColorName(_selectedLineColor);
+    final pointColorName = _getColorName(_selectedPointColor);
 
-    return '''// ${currentExample['title']} Example
+    return '''// ${currentExample['title']} Example - Customized
 final data = [
 $dataString,
 ];
@@ -948,12 +1288,12 @@ MaterialChartLine(
   width: 600,
   height: 250,
   style: LineChartStyle(
-    lineColor: $colorName,
-    pointColor: $colorName,
-    backgroundColor: Colors.transparent,
-    gridColor: AppColors.border,
-    strokeWidth: 3,
-    pointRadius: 6,
+    lineColor: $lineColorName,
+    pointColor: $pointColorName,
+    backgroundColor: ${_selectedBackgroundColor == Colors.transparent ? 'Colors.transparent' : _getColorName(_selectedBackgroundColor)},
+    gridColor: ${_getColorName(_selectedGridColor)},
+    strokeWidth: ${_strokeWidth.toStringAsFixed(1)},
+    pointRadius: ${_pointRadius.toStringAsFixed(1)},
     labelStyle: TextStyle(
       color: AppColors.textSecondary,
       fontSize: 12,
@@ -962,8 +1302,8 @@ MaterialChartLine(
     animationDuration: Duration(milliseconds: 2000),
     animationCurve: Curves.easeOutCubic,
   ),
-  showPoints: true,
-  showGrid: true,
+  showPoints: $_showPoints,
+  showGrid: $_showGrid,
   padding: EdgeInsets.all(20),
   onAnimationComplete: () {
     print('${currentExample['title']} animation completed!');
@@ -977,6 +1317,11 @@ MaterialChartLine(
     if (color == Colors.green) return 'Colors.green';
     if (color == Colors.blue) return 'Colors.blue';
     if (color == Colors.red) return 'Colors.red';
+    if (color == Colors.purple) return 'Colors.purple';
+    if (color == Colors.teal) return 'Colors.teal';
+    if (color == Colors.indigo) return 'Colors.indigo';
+    if (color == Colors.pink) return 'Colors.pink';
+    if (color == AppColors.border) return 'AppColors.border';
     return 'Colors.blue';
   }
 
@@ -1002,7 +1347,7 @@ MaterialChartLine(
     lineColor: Colors.blue,
     pointColor: Colors.red,
     backgroundColor: Colors.white,
-    gridColor: Colors.grey.withOpacity(0.3),
+    gridColor: Colors.grey.withValues(alpha: 0.3),
     strokeWidth: 3.0,
     pointRadius: 6.0,
     labelStyle: TextStyle(
