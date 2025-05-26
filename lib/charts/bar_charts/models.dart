@@ -1,18 +1,18 @@
-// models/chart_models.dart
+// lib/charts/bar_chart/models.dart
 import 'package:flutter/material.dart';
 import '../../material_charts/material_charts.dart';
 import '../constants.dart';
 
-/// Model for chart examples/demos
-class ChartExample {
+/// Model for bar chart examples/demos
+class BarChartExample {
   final String title;
   final String description;
-  final List<ChartData> data;
+  final List<BarChartData> data;
   final Color color;
   final String category;
   final Map<String, dynamic>? metadata;
 
-  const ChartExample({
+  const BarChartExample({
     required this.title,
     required this.description,
     required this.data,
@@ -73,77 +73,55 @@ class CodeExample {
   });
 }
 
-/// Chart configuration state - ENHANCED WITH ANIMATION PROPERTIES
-class ChartConfig {
-  final double strokeWidth;
-  final double pointRadius;
-  final bool showPoints;
+/// Bar chart configuration state
+class BarChartConfig {
+  final double barSpacing;
+  final double cornerRadius;
   final bool showGrid;
-  final Color lineColor;
-  final Color pointColor;
+  final bool showValues;
+  final bool interactive;
+  final bool gradientEffect;
+  final Color barColor;
   final Color gridColor;
   final Color backgroundColor;
-  // NEW: Animation properties
-  final Duration animationDuration;
-  final Curve animationCurve;
-  final bool enableAnimation;
+  final List<Color>? gradientColors;
 
-  const ChartConfig({
-    this.strokeWidth = 3.0,
-    this.pointRadius = 6.0,
-    this.showPoints = true,
+  const BarChartConfig({
+    this.barSpacing = 0.3,
+    this.cornerRadius = 8.0,
     this.showGrid = true,
-    this.lineColor = AppColors.primary,
-    this.pointColor = AppColors.primary,
+    this.showValues = true,
+    this.interactive = true,
+    this.gradientEffect = false,
+    this.barColor = AppColors.primary,
     this.gridColor = AppColors.border,
     this.backgroundColor = Colors.transparent,
-    // Animation defaults
-    this.animationDuration = const Duration(milliseconds: 2000),
-    this.animationCurve = Curves.easeOutCubic,
-    this.enableAnimation = true,
+    this.gradientColors,
   });
 
-  ChartConfig copyWith({
-    double? strokeWidth,
-    double? pointRadius,
-    bool? showPoints,
+  BarChartConfig copyWith({
+    double? barSpacing,
+    double? cornerRadius,
     bool? showGrid,
-    Color? lineColor,
-    Color? pointColor,
+    bool? showValues,
+    bool? interactive,
+    bool? gradientEffect,
+    Color? barColor,
     Color? gridColor,
     Color? backgroundColor,
-    Duration? animationDuration,
-    Curve? animationCurve,
-    bool? enableAnimation,
+    List<Color>? gradientColors,
   }) {
-    return ChartConfig(
-      strokeWidth: strokeWidth ?? this.strokeWidth,
-      pointRadius: pointRadius ?? this.pointRadius,
-      showPoints: showPoints ?? this.showPoints,
+    return BarChartConfig(
+      barSpacing: barSpacing ?? this.barSpacing,
+      cornerRadius: cornerRadius ?? this.cornerRadius,
       showGrid: showGrid ?? this.showGrid,
-      lineColor: lineColor ?? this.lineColor,
-      pointColor: pointColor ?? this.pointColor,
+      showValues: showValues ?? this.showValues,
+      interactive: interactive ?? this.interactive,
+      gradientEffect: gradientEffect ?? this.gradientEffect,
+      barColor: barColor ?? this.barColor,
       gridColor: gridColor ?? this.gridColor,
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      animationDuration: animationDuration ?? this.animationDuration,
-      animationCurve: animationCurve ?? this.animationCurve,
-      enableAnimation: enableAnimation ?? this.enableAnimation,
+      gradientColors: gradientColors ?? this.gradientColors,
     );
   }
-}
-
-/// NEW: Animation curve option model
-class CurveOption {
-  final String name;
-  final Curve curve;
-
-  const CurveOption({required this.name, required this.curve});
-}
-
-/// NEW: Animation duration option model
-class DurationOption {
-  final String name;
-  final Duration duration;
-
-  const DurationOption({required this.name, required this.duration});
 }

@@ -1,99 +1,72 @@
-// data/chart_data_provider.dart
+// lib/charts/bar_chart/provider.dart
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/material_charts.dart';
+import '../../material_charts/material_charts.dart';
 import '../constants.dart';
 import 'models.dart';
 
-/// Provides all chart examples, property definitions, and code samples
-class ChartDataProvider {
+/// Provides all bar chart examples, property definitions, and code samples
+class BarChartDataProvider {
   // Chart Examples for Demo
-  static List<ChartExample> getChartExamples() {
+  static List<BarChartExample> getChartExamples() {
     return [
-      ChartExample(
-        title: 'Monthly Sales Data',
-        description: 'Track sales performance across months',
+      BarChartExample(
+        title: 'Quarterly Revenue',
+        description: 'Company revenue performance by quarter',
         color: AppColors.primary,
         category: 'business',
         data: [
-          const ChartData(value: 15000, label: 'Jan'),
-          const ChartData(value: 32000, label: 'Feb'),
-          const ChartData(value: 28000, label: 'Mar'),
-          const ChartData(value: 45000, label: 'Apr'),
-          const ChartData(value: 38000, label: 'May'),
-          const ChartData(value: 52000, label: 'Jun'),
-          const ChartData(value: 48000, label: 'Jul'),
-          const ChartData(value: 65000, label: 'Aug'),
+          const BarChartData(value: 95000, label: 'Q1'),
+          const BarChartData(value: 128000, label: 'Q2'),
+          const BarChartData(value: 115000, label: 'Q3'),
+          const BarChartData(value: 152000, label: 'Q4'),
         ],
         metadata: {'unit': 'USD', 'trend': 'positive'},
       ),
 
-      ChartExample(
-        title: 'Temperature Variation',
-        description: 'Daily temperature readings',
+      BarChartExample(
+        title: 'Product Categories',
+        description: 'Sales distribution across product categories',
         color: AppColors.accent,
-        category: 'weather',
+        category: 'sales',
         data: [
-          const ChartData(value: 22, label: 'Mon'),
-          const ChartData(value: 25, label: 'Tue'),
-          const ChartData(value: 28, label: 'Wed'),
-          const ChartData(value: 26, label: 'Thu'),
-          const ChartData(value: 24, label: 'Fri'),
-          const ChartData(value: 23, label: 'Sat'),
-          const ChartData(value: 21, label: 'Sun'),
+          const BarChartData(value: 85, label: 'Electronics'),
+          const BarChartData(value: 92, label: 'Clothing'),
+          const BarChartData(value: 78, label: 'Books'),
+          const BarChartData(value: 105, label: 'Home'),
+          const BarChartData(value: 67, label: 'Sports'),
         ],
-        metadata: {'unit': '°C', 'location': 'City Center'},
+        metadata: {'unit': 'units', 'period': 'monthly'},
       ),
 
-      ChartExample(
-        title: 'User Engagement',
-        description: 'Weekly active users',
+      BarChartExample(
+        title: 'Team Performance',
+        description: 'Individual team member productivity scores',
         color: AppColors.primaryLight,
-        category: 'analytics',
+        category: 'hr',
         data: [
-          const ChartData(value: 1200, label: 'W1'),
-          const ChartData(value: 1350, label: 'W2'),
-          const ChartData(value: 1180, label: 'W3'),
-          const ChartData(value: 1420, label: 'W4'),
-          const ChartData(value: 1680, label: 'W5'),
-          const ChartData(value: 1550, label: 'W6'),
+          const BarChartData(value: 88, label: 'Alice'),
+          const BarChartData(value: 94, label: 'Bob'),
+          const BarChartData(value: 76, label: 'Carol'),
+          const BarChartData(value: 91, label: 'David'),
+          const BarChartData(value: 83, label: 'Eve'),
+          const BarChartData(value: 96, label: 'Frank'),
         ],
-        metadata: {'unit': 'users', 'period': 'weekly'},
+        metadata: {'unit': 'score', 'scale': '0-100'},
       ),
-    ];
-  }
 
-  // NEW: Animation curve options for customization
-  static List<CurveOption> getAnimationCurves() {
-    return [
-      CurveOption(name: 'Ease Out Cubic', curve: Curves.easeOutCubic),
-      CurveOption(name: 'Ease In Out', curve: Curves.easeInOut),
-      CurveOption(name: 'Ease In', curve: Curves.easeIn),
-      CurveOption(name: 'Ease Out', curve: Curves.easeOut),
-      CurveOption(name: 'Bounce In', curve: Curves.bounceIn),
-      CurveOption(name: 'Bounce Out', curve: Curves.bounceOut),
-      CurveOption(name: 'Elastic In', curve: Curves.elasticIn),
-      CurveOption(name: 'Elastic Out', curve: Curves.elasticOut),
-      CurveOption(name: 'Fast Linear', curve: Curves.fastLinearToSlowEaseIn),
-      CurveOption(name: 'Decelerate', curve: Curves.decelerate),
-      CurveOption(name: 'Linear', curve: Curves.linear),
-    ];
-  }
-
-  // NEW: Animation duration presets
-  static List<DurationOption> getAnimationDurations() {
-    return [
-      DurationOption(name: 'Fast', duration: const Duration(milliseconds: 800)),
-      DurationOption(
-        name: 'Normal',
-        duration: const Duration(milliseconds: 1500),
-      ),
-      DurationOption(
-        name: 'Slow',
-        duration: const Duration(milliseconds: 2500),
-      ),
-      DurationOption(
-        name: 'Very Slow',
-        duration: const Duration(milliseconds: 4000),
+      BarChartExample(
+        title: 'Monthly Expenses',
+        description: 'Budget breakdown by expense category',
+        color: AppColors.accentLight,
+        category: 'finance',
+        data: [
+          const BarChartData(value: 1200, label: 'Rent'),
+          const BarChartData(value: 450, label: 'Food'),
+          const BarChartData(value: 300, label: 'Transport'),
+          const BarChartData(value: 200, label: 'Utilities'),
+          const BarChartData(value: 150, label: 'Entertainment'),
+        ],
+        metadata: {'unit': 'USD', 'period': 'monthly'},
       ),
     ];
   }
@@ -109,10 +82,10 @@ class ChartDataProvider {
         properties: [
           PropertyInfo(
             name: 'data',
-            type: 'List<ChartData>',
+            type: 'List<BarChartData>',
             description: 'Chart data points with values and labels',
             required: true,
-            example: '[ChartData(value: 100, label: "Jan")]',
+            example: '[BarChartData(value: 100, label: "Q1")]',
           ),
           PropertyInfo(
             name: 'width',
@@ -129,17 +102,25 @@ class ChartDataProvider {
             example: '300',
           ),
           PropertyInfo(
-            name: 'showPoints',
+            name: 'showGrid',
             type: 'bool',
-            description: 'Display data points on the line',
+            description: 'Display background grid lines',
             required: false,
             defaultValue: 'true',
             example: 'true',
           ),
           PropertyInfo(
-            name: 'showGrid',
+            name: 'showValues',
             type: 'bool',
-            description: 'Display background grid lines',
+            description: 'Display values above bars',
+            required: false,
+            defaultValue: 'true',
+            example: 'true',
+          ),
+          PropertyInfo(
+            name: 'interactive',
+            type: 'bool',
+            description: 'Enable hover interactions',
             required: false,
             defaultValue: 'true',
             example: 'true',
@@ -149,8 +130,16 @@ class ChartDataProvider {
             type: 'EdgeInsets',
             description: 'Space around the chart content',
             required: false,
-            defaultValue: 'EdgeInsets.all(20)',
+            defaultValue: 'EdgeInsets.all(24)',
             example: 'EdgeInsets.all(20)',
+          ),
+          PropertyInfo(
+            name: 'horizontalGridLines',
+            type: 'int',
+            description: 'Number of horizontal grid lines',
+            required: false,
+            defaultValue: '5',
+            example: '5',
           ),
         ],
       ),
@@ -162,20 +151,12 @@ class ChartDataProvider {
         color: AppColors.accent,
         properties: [
           PropertyInfo(
-            name: 'lineColor',
+            name: 'barColor',
             type: 'Color',
-            description: 'Color of the chart line',
+            description: 'Default color of the bars',
             required: false,
             defaultValue: 'Colors.blue',
             example: 'Colors.blue',
-          ),
-          PropertyInfo(
-            name: 'pointColor',
-            type: 'Color',
-            description: 'Color of the data points',
-            required: false,
-            defaultValue: 'Colors.blue',
-            example: 'Colors.red',
           ),
           PropertyInfo(
             name: 'gridColor',
@@ -194,20 +175,35 @@ class ChartDataProvider {
             example: 'Colors.white',
           ),
           PropertyInfo(
-            name: 'strokeWidth',
+            name: 'barSpacing',
             type: 'double',
-            description: 'Thickness of the chart line',
+            description: 'Spacing between bars as percentage (0.0-1.0)',
             required: false,
-            defaultValue: '2.0',
-            example: '3.0',
+            defaultValue: '0.2',
+            example: '0.3',
           ),
           PropertyInfo(
-            name: 'pointRadius',
+            name: 'cornerRadius',
             type: 'double',
-            description: 'Size of the data points',
+            description: 'Radius for rounded bar corners',
             required: false,
             defaultValue: '4.0',
-            example: '6.0',
+            example: '8.0',
+          ),
+          PropertyInfo(
+            name: 'gradientEffect',
+            type: 'bool',
+            description: 'Apply gradient effect to bars',
+            required: false,
+            defaultValue: 'false',
+            example: 'true',
+          ),
+          PropertyInfo(
+            name: 'gradientColors',
+            type: 'List<Color>?',
+            description: 'Colors for gradient effect',
+            required: false,
+            example: '[Colors.blue, Colors.lightBlue]',
           ),
           PropertyInfo(
             name: 'labelStyle',
@@ -215,6 +211,13 @@ class ChartDataProvider {
             description: 'Styling for axis labels',
             required: false,
             example: 'TextStyle(fontSize: 12)',
+          ),
+          PropertyInfo(
+            name: 'valueStyle',
+            type: 'TextStyle?',
+            description: 'Styling for value labels',
+            required: false,
+            example: 'TextStyle(fontSize: 10)',
           ),
         ],
       ),
@@ -228,16 +231,23 @@ class ChartDataProvider {
           PropertyInfo(
             name: 'value',
             type: 'double',
-            description: 'Numeric value for the Y-axis position',
+            description: 'Numeric value for the bar height',
             required: true,
-            example: '42.5',
+            example: '150.0',
           ),
           PropertyInfo(
             name: 'label',
             type: 'String',
-            description: 'Text label displayed on the X-axis',
+            description: 'Text label displayed below the bar',
             required: true,
-            example: '"January"',
+            example: '"Q1"',
+          ),
+          PropertyInfo(
+            name: 'color',
+            type: 'Color?',
+            description: 'Optional custom color for individual bars',
+            required: false,
+            example: 'Colors.red',
           ),
         ],
       ),
@@ -269,7 +279,7 @@ class ChartDataProvider {
             type: 'VoidCallback?',
             description: 'Callback when animation finishes',
             required: false,
-            example: '() => print("Done!")',
+            example: '() => print("Animation done!")',
           ),
         ],
       ),
@@ -281,14 +291,14 @@ class ChartDataProvider {
     return [
       CodeExample(
         title: 'Basic Usage',
-        description: 'Simple chart with minimal configuration',
+        description: 'Simple bar chart with minimal configuration',
         category: 'basic',
-        code: '''MaterialChartLine(
+        code: '''MaterialBarChart(
   data: [
-    ChartData(value: 15, label: 'Jan'),
-    ChartData(value: 32, label: 'Feb'),
-    ChartData(value: 28, label: 'Mar'),
-    ChartData(value: 45, label: 'Apr'),
+    BarChartData(value: 95, label: 'Q1'),
+    BarChartData(value: 128, label: 'Q2'),
+    BarChartData(value: 115, label: 'Q3'),
+    BarChartData(value: 152, label: 'Q4'),
   ],
   width: 400,
   height: 300,
@@ -297,49 +307,79 @@ class ChartDataProvider {
 
       CodeExample(
         title: 'Advanced Styling',
-        description: 'Customized appearance and animation',
+        description: 'Customized appearance with gradient effects',
         category: 'advanced',
-        code: '''MaterialChartLine(
-  data: chartData,
+        code: '''MaterialBarChart(
+  data: salesData,
   width: 600,
   height: 400,
-  style: LineChartStyle(
-    lineColor: Colors.blue,
-    pointColor: Colors.red,
+  style: BarChartStyle(
+    barColor: Colors.blue,
     backgroundColor: Colors.white,
     gridColor: Colors.grey.withValues(alpha: 0.3),
-    strokeWidth: 3.0,
-    pointRadius: 6.0,
+    barSpacing: 0.3,
+    cornerRadius: 12.0,
+    gradientEffect: true,
+    gradientColors: [
+      Colors.blue,
+      Colors.lightBlue,
+    ],
     labelStyle: TextStyle(
       color: Colors.black87,
       fontSize: 12,
       fontWeight: FontWeight.w600,
     ),
+    valueStyle: TextStyle(
+      color: Colors.blue,
+      fontSize: 10,
+      fontWeight: FontWeight.bold,
+    ),
     animationDuration: Duration(milliseconds: 2000),
     animationCurve: Curves.easeOutCubic,
   ),
-  showPoints: true,
   showGrid: true,
+  showValues: true,
+  interactive: true,
   padding: EdgeInsets.all(20),
 )''',
       ),
 
       CodeExample(
-        title: 'With Callbacks',
-        description: 'Handling animation completion',
-        category: 'callbacks',
-        code: '''MaterialChartLine(
-  data: salesData,
+        title: 'Custom Colors per Bar',
+        description: 'Individual bar colors and interactions',
+        category: 'customization',
+        code: '''final data = [
+  BarChartData(
+    value: 95, 
+    label: 'Sales', 
+    color: Colors.green,
+  ),
+  BarChartData(
+    value: 128, 
+    label: 'Marketing', 
+    color: Colors.orange,
+  ),
+  BarChartData(
+    value: 115, 
+    label: 'Support', 
+    color: Colors.red,
+  ),
+  BarChartData(
+    value: 152, 
+    label: 'Development', 
+    color: Colors.blue,
+  ),
+];
+
+MaterialBarChart(
+  data: data,
   width: 500,
   height: 350,
+  interactive: true,
   onAnimationComplete: () {
-    print('Chart animation completed!');
-    // Trigger additional actions
-    _showDataSummary();
+    print('Bar chart animation completed!');
+    _showSummary();
   },
-  style: LineChartStyle(
-    animationDuration: Duration(milliseconds: 1500),
-  ),
 )''',
       ),
     ];
@@ -354,82 +394,81 @@ class ChartDataProvider {
       AppColors.accentLight,
       Colors.green,
       Colors.red,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
       Colors.indigo,
       Colors.pink,
+      Colors.amber,
     ];
   }
 
-  // ENHANCED: Generate dynamic live code with animation settings
+  // Generate dynamic live code based on current configuration
   static String generateLiveCode(
-    ChartExample example,
-    ChartConfig config,
+    BarChartExample example,
+    BarChartConfig config,
     bool showRightPanel,
   ) {
     final dataString = example.data
         .map(
           (data) =>
-              '    ChartData(value: ${data.value}, label: \'${data.label}\')',
+              '    BarChartData(value: ${data.value}, label: \'${data.label}\'),',
         )
-        .join(',\n');
+        .join('\n');
 
-    final lineColorName = _getColorName(config.lineColor);
-    final pointColorName = _getColorName(config.pointColor);
+    final barColorName = _getColorName(config.barColor);
     final gridColorName = _getColorName(config.gridColor);
     final backgroundColorName =
         config.backgroundColor == Colors.transparent
             ? 'Colors.transparent'
             : _getColorName(config.backgroundColor);
 
-    final animationCurveName = _getCurveName(config.animationCurve);
+    final gradientColorsString =
+        config.gradientEffect
+            ? '''
+    gradientColors: [
+      ${_getColorName(config.barColor)},
+      ${_getColorName(config.barColor)}.withValues(alpha: 0.6),
+    ],'''
+            : '';
 
     return '''// ${example.title} Example - Live Customization
 final data = [
-$dataString,
+$dataString
 ];
 
-MaterialChartLine(
+MaterialBarChart(
   data: data,
-  width: ${showRightPanel ? 400 : 600},
-  height: 250,
-  style: LineChartStyle(
-    lineColor: $lineColorName,
-    pointColor: $pointColorName,
+  width: ${showRightPanel ? 450 : 650},
+  height: 300,
+  style: BarChartStyle(
+    barColor: $barColorName,
     backgroundColor: $backgroundColorName,
     gridColor: $gridColorName,
-    strokeWidth: ${config.strokeWidth.toStringAsFixed(1)},
-    pointRadius: ${config.pointRadius.toStringAsFixed(1)},
+    barSpacing: ${config.barSpacing.toStringAsFixed(2)},
+    cornerRadius: ${config.cornerRadius.toStringAsFixed(1)},
+    gradientEffect: ${config.gradientEffect},$gradientColorsString
     labelStyle: TextStyle(
       color: AppColors.textSecondary,
       fontSize: 12,
       fontWeight: FontWeight.w600,
     ),
-    animationDuration: Duration(milliseconds: ${config.animationDuration.inMilliseconds}),
-    animationCurve: $animationCurveName,
+    valueStyle: TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+    ),
+    animationDuration: Duration(milliseconds: 2000),
+    animationCurve: Curves.easeOutCubic,
   ),
-  showPoints: ${config.showPoints},
   showGrid: ${config.showGrid},
+  showValues: ${config.showValues},
+  interactive: ${config.interactive},
   padding: EdgeInsets.all(20),
   onAnimationComplete: () {
     print('${example.title} animation completed!');
   },
 )''';
-  }
-
-  // NEW: Get curve name for code generation
-  static String _getCurveName(Curve curve) {
-    if (curve == Curves.easeOutCubic) return 'Curves.easeOutCubic';
-    if (curve == Curves.easeInOut) return 'Curves.easeInOut';
-    if (curve == Curves.easeIn) return 'Curves.easeIn';
-    if (curve == Curves.easeOut) return 'Curves.easeOut';
-    if (curve == Curves.bounceIn) return 'Curves.bounceIn';
-    if (curve == Curves.bounceOut) return 'Curves.bounceOut';
-    if (curve == Curves.elasticIn) return 'Curves.elasticIn';
-    if (curve == Curves.elasticOut) return 'Curves.elasticOut';
-    if (curve == Curves.fastLinearToSlowEaseIn)
-      return 'Curves.fastLinearToSlowEaseIn';
-    if (curve == Curves.decelerate) return 'Curves.decelerate';
-    if (curve == Curves.linear) return 'Curves.linear';
-    return 'Curves.easeOutCubic';
   }
 
   static String _getColorName(Color color) {
@@ -445,6 +484,7 @@ MaterialChartLine(
     if (color == Colors.teal) return 'Colors.teal';
     if (color == Colors.indigo) return 'Colors.indigo';
     if (color == Colors.pink) return 'Colors.pink';
+    if (color == Colors.amber) return 'Colors.amber';
     if (color == AppColors.border) return 'AppColors.border';
     return 'Colors.blue';
   }

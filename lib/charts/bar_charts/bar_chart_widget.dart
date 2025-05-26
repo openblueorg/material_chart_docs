@@ -1,41 +1,41 @@
-// line_chart_widget.dart
-import 'package:chat_test_01/material_charts/material_charts.dart';
+// lib/charts/bar_chart/bar_chart_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import '../../material_charts/material_charts.dart';
 import '../constants.dart';
 import 'models.dart';
 import 'provider.dart';
 import 'widget.dart';
 
-/// # MaterialChartLine Widget Documentation
+/// # MaterialBarChart Widget Documentation
 ///
-/// A highly customizable animated line chart widget that displays data points
-/// connected by smooth lines. Perfect for visualizing trends, progress, and
-/// time-series data with beautiful animations and styling options.
+/// A highly customizable animated bar chart widget that displays data as vertical bars.
+/// Perfect for visualizing comparisons, distributions, and categorical data with
+/// beautiful animations and styling options.
 ///
 /// ## Features
 /// - ✨ Smooth animations with customizable duration and curves
-/// - 🎨 Fully customizable styling (colors, stroke width, point size)
-/// - 📊 Optional grid lines and data points
+/// - 🎨 Fully customizable styling (colors, spacing, corner radius)
+/// - 📊 Optional grid lines and value labels
 /// - 🏷️ Automatic label positioning
 /// - 📱 Responsive design with configurable padding
-/// - 🎯 Callback support for animation completion
+/// - 🎯 Interactive hover effects and callbacks
+/// - 🌈 Gradient effects and individual bar colors
 ///
 /// ## Use Cases
-/// - Sales trends over time
-/// - Performance metrics
-/// - Temperature variations
-/// - Stock price movements
-/// - User engagement analytics
-class LineChartWidget extends StatefulWidget {
-  const LineChartWidget({super.key});
+/// - Sales comparisons across periods
+/// - Category performance metrics
+/// - Survey results visualization
+/// - Budget breakdowns
+/// - Inventory tracking
+class BarChartWidget extends StatefulWidget {
+  const BarChartWidget({super.key});
 
   @override
-  State<LineChartWidget> createState() => _LineChartWidgetState();
+  State<BarChartWidget> createState() => _BarChartWidgetState();
 }
 
-class _LineChartWidgetState extends State<LineChartWidget> {
+class _BarChartWidgetState extends State<BarChartWidget> {
   // UI State
   int _selectedExample = 0;
   bool _showRightPanel = false;
@@ -43,10 +43,10 @@ class _LineChartWidgetState extends State<LineChartWidget> {
   Key _chartKey = UniqueKey();
 
   // Chart Configuration
-  ChartConfig _chartConfig = const ChartConfig();
+  BarChartConfig _chartConfig = const BarChartConfig();
 
   // Data Sources
-  List<ChartExample> _examples = [];
+  List<BarChartExample> _examples = [];
   List<PropertySection> _propertySections = [];
   List<CodeExample> _codeExamples = [];
 
@@ -57,9 +57,9 @@ class _LineChartWidgetState extends State<LineChartWidget> {
   }
 
   void _loadData() {
-    _examples = ChartDataProvider.getChartExamples();
-    _propertySections = ChartDataProvider.getPropertySections();
-    _codeExamples = ChartDataProvider.getCodeExamples();
+    _examples = BarChartDataProvider.getChartExamples();
+    _propertySections = BarChartDataProvider.getPropertySections();
+    _codeExamples = BarChartDataProvider.getCodeExamples();
   }
 
   @override
@@ -75,7 +75,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ChartWidgets.buildDocumentationHeader(),
+                  ChartWidgets.buildLineChartDocumentationHeader(),
                   const SizedBox(height: 32),
                   _buildInteractiveDemo(),
                   const SizedBox(height: 32),
@@ -99,7 +99,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     );
   }
 
-  // ENHANCED: Interactive Demo with animation support
   Widget _buildInteractiveDemo() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -135,67 +134,47 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           ),
           const SizedBox(height: 24),
           Container(
-            height: 300,
+            height: 350,
             decoration: BoxDecoration(
-              color:
-                  _chartConfig.backgroundColor == Colors.transparent
-                      ? Colors.white
-                      : _chartConfig.backgroundColor,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
             child: Center(
-              child: MaterialChartLine(
+              child: MaterialBarChart(
                 key: _chartKey,
                 data: _examples[_selectedExample].data,
-                width: _showRightPanel ? 400 : 600,
-                height: 250,
-                style: LineChartStyle(
-                  lineColor: _chartConfig.lineColor,
-                  pointColor: _chartConfig.pointColor,
+                width: _showRightPanel ? 450 : 650,
+                height: 300,
+                style: BarChartStyle(
+                  barColor: _chartConfig.barColor,
                   backgroundColor: _chartConfig.backgroundColor,
                   gridColor: _chartConfig.gridColor,
-                  strokeWidth: _chartConfig.strokeWidth,
-                  pointRadius: _chartConfig.pointRadius,
+                  barSpacing: _chartConfig.barSpacing,
+                  cornerRadius: _chartConfig.cornerRadius,
+                  gradientEffect: _chartConfig.gradientEffect,
+                  gradientColors: _chartConfig.gradientColors,
                   labelStyle: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  // NEW: Animation properties from config
-                  animationDuration:
-                      _chartConfig.enableAnimation
-                          ? _chartConfig.animationDuration
-                          : Duration.zero,
-                  animationCurve: _chartConfig.animationCurve,
+                  valueStyle: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  animationDuration: const Duration(milliseconds: 2000),
+                  animationCurve: Curves.easeOutCubic,
                 ),
-                showPoints: _chartConfig.showPoints,
                 showGrid: _chartConfig.showGrid,
+                showValues: _chartConfig.showValues,
+                interactive: _chartConfig.interactive,
                 padding: const EdgeInsets.all(20),
                 onAnimationComplete: () {
-                  // NEW: Animation completion feedback
-                  if (_chartConfig.enableAnimation) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${_examples[_selectedExample].title} animation completed!',
-                        ),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: AppColors.primary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        margin: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).size.height - 100,
-                          left: 20,
-                          right: 20,
-                        ),
-                      ),
-                    );
-                  }
+                  // Animation completed callback
                 },
               ),
             ),
@@ -337,7 +316,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     );
   }
 
-  // ENHANCED: Customization Panel with Animation Controls
   Widget _buildCustomizationPanel() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -350,74 +328,37 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
           // Example Selector
           ChartWidgets.buildPanelSection('Chart Example', [
-            ChartWidgets.buildExampleSelector(_examples, _selectedExample, (
-              index,
-            ) {
+            _buildBarExampleSelector(_examples, _selectedExample, (index) {
               setState(() {
                 _selectedExample = index;
                 _chartKey = UniqueKey();
                 _chartConfig = _chartConfig.copyWith(
-                  lineColor: _examples[_selectedExample].color,
-                  pointColor: _examples[_selectedExample].color,
+                  barColor: _examples[_selectedExample].color,
                 );
               });
             }),
           ]),
           const SizedBox(height: 20),
 
-          // NEW: Animation Controls Section
-          ChartWidgets.buildPanelSection('Animation Effects', [
-            ChartWidgets.buildToggle(
-              'Enable Animation',
-              _chartConfig.enableAnimation,
-              (value) => setState(() {
-                _chartConfig = _chartConfig.copyWith(enableAnimation: value);
-                if (value) _chartKey = UniqueKey(); // Restart animation
-              }),
-            ),
-            const SizedBox(height: 16),
-            ChartWidgets.buildAnimationDurationSlider(
-              _chartConfig.animationDuration,
-              (duration) => setState(() {
-                _chartConfig = _chartConfig.copyWith(
-                  animationDuration: duration,
-                );
-              }),
-            ),
-            const SizedBox(height: 16),
-            ChartWidgets.buildAnimationCurveDropdown(
-              ChartDataProvider.getAnimationCurves(),
-              _chartConfig.animationCurve,
-              (curve) => setState(() {
-                _chartConfig = _chartConfig.copyWith(animationCurve: curve);
-              }),
-            ),
-            const SizedBox(height: 12),
-            ChartWidgets.buildAnimationPreviewButton(() {
-              setState(() => _chartKey = UniqueKey());
-            }),
-          ]),
-          const SizedBox(height: 20),
-
-          // Line & Points Controls
-          ChartWidgets.buildPanelSection('Line & Points', [
+          // Bar Appearance Controls
+          ChartWidgets.buildPanelSection('Bar Appearance', [
             ChartWidgets.buildSlider(
-              'Line Thickness',
-              _chartConfig.strokeWidth,
-              1.0,
-              8.0,
+              'Bar Spacing',
+              _chartConfig.barSpacing,
+              0.0,
+              0.8,
               (value) => setState(() {
-                _chartConfig = _chartConfig.copyWith(strokeWidth: value);
+                _chartConfig = _chartConfig.copyWith(barSpacing: value);
               }),
             ),
             const SizedBox(height: 16),
             ChartWidgets.buildSlider(
-              'Point Size',
-              _chartConfig.pointRadius,
-              2.0,
-              12.0,
+              'Corner Radius',
+              _chartConfig.cornerRadius,
+              0.0,
+              20.0,
               (value) => setState(() {
-                _chartConfig = _chartConfig.copyWith(pointRadius: value);
+                _chartConfig = _chartConfig.copyWith(cornerRadius: value);
               }),
             ),
           ]),
@@ -426,34 +367,41 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           // Display Options
           ChartWidgets.buildPanelSection('Display Options', [
             ChartWidgets.buildToggle(
-              'Show Points',
-              _chartConfig.showPoints,
-              (value) => setState(() {
-                _chartConfig = _chartConfig.copyWith(showPoints: value);
-              }),
-            ),
-            const SizedBox(height: 8),
-            ChartWidgets.buildToggle(
               'Show Grid',
               _chartConfig.showGrid,
               (value) => setState(() {
                 _chartConfig = _chartConfig.copyWith(showGrid: value);
               }),
             ),
-          ]),
-          const SizedBox(height: 20),
-
-          // ENHANCED: Colors Section with Background
-          ChartWidgets.buildPanelSection('Colors', [
-            _buildColorControls(),
-            const SizedBox(height: 16),
-            ChartWidgets.buildBackgroundColorPicker(
-              _chartConfig.backgroundColor,
-              (color) => setState(() {
-                _chartConfig = _chartConfig.copyWith(backgroundColor: color);
+            const SizedBox(height: 8),
+            ChartWidgets.buildToggle(
+              'Show Values',
+              _chartConfig.showValues,
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(showValues: value);
+              }),
+            ),
+            const SizedBox(height: 8),
+            ChartWidgets.buildToggle(
+              'Interactive',
+              _chartConfig.interactive,
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(interactive: value);
+              }),
+            ),
+            const SizedBox(height: 8),
+            ChartWidgets.buildToggle(
+              'Gradient Effect',
+              _chartConfig.gradientEffect,
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(gradientEffect: value);
               }),
             ),
           ]),
+          const SizedBox(height: 20),
+
+          // Colors
+          ChartWidgets.buildPanelSection('Colors', [_buildColorControls()]),
         ],
       ),
     );
@@ -609,13 +557,13 @@ class _LineChartWidgetState extends State<LineChartWidget> {
   }
 
   Widget _buildColorControls() {
-    final colors = ChartDataProvider.getColorPalette();
+    final colors = BarChartDataProvider.getColorPalette();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Line & Points',
+          'Bar Color',
           style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 8),
@@ -626,12 +574,11 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                   .map(
                     (color) => ChartWidgets.buildColorButton(
                       color,
-                      _chartConfig.lineColor,
+                      _chartConfig.barColor,
                       (selectedColor) {
                         setState(() {
                           _chartConfig = _chartConfig.copyWith(
-                            lineColor: selectedColor,
-                            pointColor: selectedColor,
+                            barColor: selectedColor,
                           );
                         });
                       },
@@ -666,7 +613,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Configure your chart components',
+                  'Configure your bar chart components',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary.withOpacity(0.8),
@@ -813,27 +760,30 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           ),
           const SizedBox(height: 16),
           _buildClassReference(
-            'ChartData',
-            'Model class for chart data points',
+            'BarChartData',
+            'Model class for bar chart data points',
             [
-              'double value - The numeric value',
-              'String label - The display label',
+              'double value - The numeric value of the bar',
+              'String label - The display label for the bar',
+              'Color? color - Optional custom color for individual bars',
             ],
           ),
           const SizedBox(height: 16),
           _buildClassReference(
-            'LineChartStyle',
-            'Configuration for chart styling',
+            'BarChartStyle',
+            'Configuration for bar chart styling',
             [
-              'Color lineColor - Line color (default: Colors.blue)',
-              'Color pointColor - Point color (default: Colors.blue)',
-              'Color gridColor - Grid color (default: Colors.grey)',
+              'Color barColor - Default bar color (default: Colors.blue)',
+              'Color gridColor - Grid line color (default: Colors.grey)',
               'Color backgroundColor - Background color (default: Colors.white)',
               'TextStyle? labelStyle - Custom label styling',
-              'double strokeWidth - Line thickness (default: 2.0)',
-              'double pointRadius - Point size (default: 4.0)',
+              'TextStyle? valueStyle - Custom value styling',
+              'double barSpacing - Spacing between bars (default: 0.2)',
+              'double cornerRadius - Bar corner radius (default: 4.0)',
               'Duration animationDuration - Animation length (default: 1500ms)',
               'Curve animationCurve - Animation curve (default: Curves.easeInOut)',
+              'bool gradientEffect - Enable gradient effect (default: false)',
+              'List<Color>? gradientColors - Colors for gradient effect',
             ],
           ),
         ],
@@ -894,16 +844,15 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
   void _resetToDefaults() {
     setState(() {
-      _chartConfig = ChartConfig(
-        lineColor: _examples[_selectedExample].color,
-        pointColor: _examples[_selectedExample].color,
+      _chartConfig = BarChartConfig(
+        barColor: _examples[_selectedExample].color,
       );
       _chartKey = UniqueKey();
     });
   }
 
   String _getCurrentExampleCode() {
-    return ChartDataProvider.generateLiveCode(
+    return BarChartDataProvider.generateLiveCode(
       _examples[_selectedExample],
       _chartConfig,
       _showRightPanel,
@@ -924,6 +873,102 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           right: 20,
         ),
       ),
+    );
+  }
+
+  Widget _buildBarExampleSelector(
+    List<BarChartExample> examples,
+    int selectedIndex,
+    Function(int) onSelect,
+  ) {
+    return Column(
+      children:
+          examples.asMap().entries.map((entry) {
+            final index = entry.key;
+            final example = entry.value;
+            final isSelected = index == selectedIndex;
+
+            return GestureDetector(
+              onTap: () => onSelect(index),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color:
+                        isSelected
+                            ? AppColors.primary
+                            : AppColors.border.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: example.color,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            example.title,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            example.description,
+                            style: TextStyle(
+                              fontSize: 9,
+                              color:
+                                  isSelected
+                                      ? AppColors.primary.withValues(alpha: 0.8)
+                                      : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Category badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: example.color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        example.category.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: example.color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 }
