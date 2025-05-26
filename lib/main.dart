@@ -1,5 +1,3 @@
-import 'package:chat_test_01/charts/area_chart.dart';
-// import 'package:chat_test_01/charts/bar_chart.dart';
 import 'package:chat_test_01/charts/candle_stick_chart.dart';
 import 'package:chat_test_01/charts/constants.dart';
 import 'package:chat_test_01/charts/gantt_chart.dart';
@@ -10,6 +8,7 @@ import 'package:chat_test_01/charts/semicircle_chart.dart';
 import 'package:chat_test_01/charts/stacked_bar_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'charts/area_chart/area_chart_widget.dart';
 import 'charts/bar_charts/bar_chart_widget.dart';
 
 void main() {
