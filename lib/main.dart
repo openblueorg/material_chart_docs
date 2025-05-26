@@ -3,7 +3,7 @@ import 'package:chat_test_01/charts/bar_chart.dart';
 import 'package:chat_test_01/charts/candle_stick_chart.dart';
 import 'package:chat_test_01/charts/constants.dart';
 import 'package:chat_test_01/charts/gantt_chart.dart';
-import 'package:chat_test_01/charts/line_chart.dart';
+import 'package:chat_test_01/charts/line_chart/line_chart.dart';
 import 'package:chat_test_01/charts/multiline_chart.dart';
 import 'package:chat_test_01/charts/pie_chart.dart';
 import 'package:chat_test_01/charts/semicircle_chart.dart';
