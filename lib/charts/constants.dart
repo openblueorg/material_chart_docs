@@ -1,4 +1,3 @@
-
 // Stunning Teal & Orange Color Palette
 import 'package:flutter/material.dart';
 
