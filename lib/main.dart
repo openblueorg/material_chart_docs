@@ -10,6 +10,7 @@ import 'charts/multiline_chart/multiline_chart_widget.dart';
 import 'charts/piechart/pie_chart_widget.dart';
 import 'charts/semicircle_chart/semicircle_chart_widget.dart';
 import 'charts/stacked_bar_chart/stacked_bar_chart_widget.dart';
+import 'landing_page.dart';
 
 void main() {
   runApp(const MaterialChartsDemo());
@@ -21,7 +22,7 @@ class MaterialChartsDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material Charts Demo',
+      title: 'Material Charts - Interactive Flutter Charts',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -43,13 +44,160 @@ class MaterialChartsDemo extends StatelessWidget {
           ),
         ),
       ),
-      home: const ChartsDemoScreen(),
+      home: const MaterialChartsApp(),
+    );
+  }
+}
+
+class MaterialChartsApp extends StatefulWidget {
+  const MaterialChartsApp({super.key});
+
+  @override
+  State<MaterialChartsApp> createState() => _MaterialChartsAppState();
+}
+
+class _MaterialChartsAppState extends State<MaterialChartsApp>
+    with TickerProviderStateMixin {
+  bool _showLandingPage = true;
+  bool _isTransitioning = false;
+  late AnimationController _transitionController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _transitionController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _transitionController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _transitionController.dispose();
+    super.dispose();
+  }
+
+  void _navigateToCharts() {
+    setState(() {
+      _isTransitioning = true;
+    });
+
+    _transitionController.forward().then((_) {
+      setState(() {
+        _showLandingPage = false;
+        _isTransitioning = false;
+      });
+      _transitionController.reset();
+    });
+  }
+
+  void _navigateToLanding() {
+    setState(() {
+      _showLandingPage = true;
+      _isTransitioning = false;
+    });
+    _transitionController.reset();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.1, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: Stack(
+        key: ValueKey<bool>(_showLandingPage),
+        children: [
+          if (_showLandingPage)
+            LandingPage(onExploreCharts: _navigateToCharts)
+          else
+            ChartsDemoScreen(onBackToLanding: _navigateToLanding),
+
+          // Transition overlay
+          if (_isTransitioning)
+            AnimatedBuilder(
+              animation: _fadeAnimation,
+              builder: (context, child) {
+                return Container(
+                  color: AppColors.primary.withOpacity(
+                    _fadeAnimation.value * 0.9,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TweenAnimationBuilder(
+                          duration: const Duration(milliseconds: 1000),
+                          tween: Tween<double>(begin: 0, end: 1),
+                          builder: (context, value, child) {
+                            return Transform.rotate(
+                              angle: value * 2 * 3.14159,
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_graph,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Loading Interactive Charts...',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Preparing your design studio',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
     );
   }
 }
 
 class ChartsDemoScreen extends StatefulWidget {
-  const ChartsDemoScreen({super.key});
+  final VoidCallback onBackToLanding;
+
+  const ChartsDemoScreen({super.key, required this.onBackToLanding});
 
   @override
   State<ChartsDemoScreen> createState() => _ChartsDemoScreenState();
@@ -60,13 +208,13 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   int _selectedIndex = 0;
   late AnimationController _sidebarController;
   late Animation<double> _sidebarAnimation;
-  bool _showEditPanel = false; // Added for edit panel toggle
+  bool _showEditPanel = false;
 
   final List<ChartType> _chartTypes = [
     ChartType(
       'Line Chart',
       Icons.trending_up,
-      'Visualize trends over time',
+      'Visualize trends over time with smooth animations',
       Colors.blue,
     ),
     ChartType(
@@ -78,19 +226,19 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
     ChartType(
       'Area Chart',
       Icons.area_chart,
-      'Show cumulative values',
+      'Show cumulative values and filled regions',
       Colors.purple,
     ),
     ChartType(
       'Pie Chart',
       Icons.pie_chart,
-      'Display proportional data',
+      'Display proportional data with interactive slices',
       Colors.orange,
     ),
     ChartType(
       'Multi-Line Chart',
       Icons.show_chart,
-      'Compare multiple series',
+      'Compare multiple data series simultaneously',
       Colors.red,
     ),
     ChartType(
@@ -102,19 +250,19 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
     ChartType(
       'Candlestick Chart',
       Icons.candlestick_chart,
-      'Financial data visualization',
+      'Professional financial data visualization',
       Colors.teal,
     ),
     ChartType(
       'Semicircle Chart',
       Icons.donut_small,
-      'Progress indicators',
+      'Progress indicators and gauges',
       Colors.amber,
     ),
     ChartType(
       'Gantt Chart',
       Icons.timeline,
-      'Project timeline management',
+      'Project timeline and task management',
       Colors.cyan,
     ),
   ];
@@ -163,7 +311,6 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 children: [
                   _buildAnimatedSidebar(),
                   Expanded(child: _buildChartArea()),
-                  // Add edit panel when needed
                   if (_showEditPanel && _selectedIndex == 0)
                     Container(
                       width: 300,
@@ -201,6 +348,28 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: [
+              // Back to landing button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: widget.onBackToLanding,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white.withOpacity(0.8),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -243,7 +412,6 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                   ],
                 ),
               ),
-              // Modified edit button
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -263,7 +431,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      _showEditPanel ? Icons.close : Icons.edit_outlined,
+                      _showEditPanel ? Icons.close : Icons.tune,
                       color: Colors.white.withOpacity(0.8),
                       size: 20,
                     ),
@@ -340,7 +508,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
               ),
               const SizedBox(width: 12),
               const Text(
-                'Chart Gallery',
+                'Chart Explorer',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -351,7 +519,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Explore ${_chartTypes.length} beautiful chart types',
+            'Interactive demos of ${_chartTypes.length} chart types',
             style: const TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary,
@@ -380,8 +548,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 if (_selectedIndex != index) {
                   setState(() {
                     _selectedIndex = index;
-                    _showEditPanel =
-                        false; // Close edit panel when switching charts
+                    _showEditPanel = false;
                   });
                   Future.delayed(const Duration(milliseconds: 50), () {
                     if (mounted) {
@@ -525,7 +692,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                   ),
                 ),
                 Text(
-                  'v1.0.0',
+                  'v1.0.0 - Interactive Mode',
                   style: TextStyle(
                     fontSize: 10,
                     color: AppColors.textSecondary,
@@ -642,13 +809,13 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    _showEditPanel ? Icons.edit : Icons.palette,
+                    _showEditPanel ? Icons.edit : Icons.space_dashboard_rounded,
                     color: Colors.white,
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _showEditPanel ? 'Editing' : 'Stunning',
+                    _showEditPanel ? 'Editing' : 'Interactive',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
