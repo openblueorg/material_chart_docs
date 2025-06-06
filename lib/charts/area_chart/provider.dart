@@ -667,13 +667,6 @@ MaterialAreaChart(
               )
               .join(',\n');
 
-          final color =
-              config.useCustomColors ? config.primaryColor : series.color;
-          final gradientColor =
-              config.useCustomColors
-                  ? config.primaryColor.withOpacity(config.fillOpacity)
-                  : series.gradientColor;
-
           return '''  AreaChartSeries(
     name: '${series.name}',
     dataPoints: [

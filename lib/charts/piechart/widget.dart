@@ -712,75 +712,6 @@ class PieChartWidgets {
     );
   }
 
-  // // Color Palette Selector
-  // static Widget buildColorPaletteSelector(
-  //   List<Color> selectedPalette,
-  //   ValueChanged<List<Color>> onChanged,
-  // ) {
-  //   final palettes = PieChartDataProvider.getColorPalettes();
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const Text(
-  //         'Color Palette',
-  //         style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-  //       ),
-  //       const SizedBox(height: 8),
-  //       ...palettes.map((palette) {
-  //         final isSelected = _areColorsEqual(selectedPalette, palette.colors);
-
-  //         return GestureDetector(
-  //           onTap: () => onChanged(palette.colors),
-  //           child: Container(
-  //             margin: const EdgeInsets.only(bottom: 8),
-  //             padding: const EdgeInsets.all(8),
-  //             decoration: BoxDecoration(
-  //               color:
-  //                   isSelected
-  //                       ? AppColors.primary.withValues(alpha: 0.1)
-  //                       : AppColors.surface,
-  //               borderRadius: BorderRadius.circular(6),
-  //               border: Border.all(
-  //                 color: isSelected ? AppColors.primary : AppColors.border,
-  //               ),
-  //             ),
-  //             child: Row(
-  //               children: [
-  //                 Row(
-  //                   children:
-  //                       palette.colors.take(4).map((color) {
-  //                         return Container(
-  //                           width: 16,
-  //                           height: 16,
-  //                           margin: const EdgeInsets.only(right: 4),
-  //                           decoration: BoxDecoration(
-  //                             color: color,
-  //                             shape: BoxShape.circle,
-  //                           ),
-  //                         );
-  //                       }).toList(),
-  //                 ),
-  //                 const SizedBox(width: 8),
-  //                 Text(
-  //                   palette.name,
-  //                   style: TextStyle(
-  //                     fontSize: 11,
-  //                     fontWeight: FontWeight.w600,
-  //                     color:
-  //                         isSelected
-  //                             ? AppColors.primary
-  //                             : AppColors.textPrimary,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         );
-  //       }),
-  //     ],
-  //   );
-  // }
-
   // Connector Line Color Picker
   static Widget buildConnectorLineColorPicker(
     Color selectedColor,
@@ -1155,14 +1086,5 @@ class PieChartWidgets {
         ),
       ],
     );
-  }
-
-  // Helper method to compare color lists
-  static bool _areColorsEqual(List<Color> colors1, List<Color> colors2) {
-    if (colors1.length != colors2.length) return false;
-    for (int i = 0; i < colors1.length; i++) {
-      if (colors1[i] != colors2[i]) return false;
-    }
-    return true;
   }
 }
