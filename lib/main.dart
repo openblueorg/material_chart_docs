@@ -1,11 +1,11 @@
 import 'package:chat_test_01/charts/constants.dart';
-import 'package:chat_test_01/charts/gantt_chart.dart';
 import 'package:chat_test_01/charts/line_chart/line_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'charts/area_chart/area_chart_widget.dart';
 import 'charts/bar_charts/bar_chart_widget.dart';
 import 'charts/candle_stick_chart/candle_stick_chart_widget.dart';
+import 'charts/gantt_chart/gantt_chart_widget.dart';
 import 'charts/multiline_chart/multiline_chart_widget.dart';
 import 'charts/piechart/pie_chart_widget.dart';
 import 'charts/semicircle_chart/semicircle_chart_widget.dart';
