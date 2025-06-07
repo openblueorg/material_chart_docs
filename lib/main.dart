@@ -209,6 +209,8 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   late AnimationController _sidebarController;
   late Animation<double> _sidebarAnimation;
   bool _showEditPanel = false;
+  bool _isSidebarOpen = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<ChartType> _chartTypes = [
     ChartType(
@@ -267,6 +269,27 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
     ),
   ];
 
+  // Responsive helper methods
+  bool _isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 600;
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 600 &&
+      MediaQuery.of(context).size.width < 1200;
+  bool _isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+
+  double _getResponsivePadding(BuildContext context) {
+    if (_isMobile(context)) return 16;
+    if (_isTablet(context)) return 20;
+    return 24;
+  }
+
+  double _getSidebarWidth(BuildContext context) {
+    if (_isMobile(context)) return MediaQuery.of(context).size.width * 0.85;
+    if (_isTablet(context)) return 280;
+    return 300;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -278,7 +301,16 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
       parent: _sidebarController,
       curve: Curves.easeInOut,
     );
-    _sidebarController.forward();
+
+    // Auto-open sidebar on desktop
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDesktop(context)) {
+        _sidebarController.forward();
+        setState(() {
+          _isSidebarOpen = true;
+        });
+      }
+    });
   }
 
   @override
@@ -287,10 +319,35 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
     super.dispose();
   }
 
+  void _toggleSidebar() {
+    if (_isMobile(context)) {
+      // Use drawer on mobile
+      if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+        Navigator.of(context).pop();
+      } else {
+        _scaffoldKey.currentState?.openDrawer();
+      }
+    } else {
+      // Toggle sidebar on tablet/desktop
+      setState(() {
+        _isSidebarOpen = !_isSidebarOpen;
+      });
+      if (_isSidebarOpen) {
+        _sidebarController.forward();
+      } else {
+        _sidebarController.reverse();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = _isMobile(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.surface,
+      drawer: isMobile ? _buildDrawer() : null,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -305,24 +362,9 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
         ),
         child: Column(
           children: [
-            _buildStunningAppBar(),
+            _buildResponsiveAppBar(),
             Expanded(
-              child: Row(
-                children: [
-                  _buildAnimatedSidebar(),
-                  Expanded(child: _buildChartArea()),
-                  if (_showEditPanel && _selectedIndex == 0)
-                    Container(
-                      width: 300,
-                      decoration: BoxDecoration(
-                        color: AppColors.sidebarBackground,
-                        border: Border(
-                          left: BorderSide(color: AppColors.border, width: 1),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
             ),
           ],
         ),
@@ -330,9 +372,12 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
     );
   }
 
-  Widget _buildStunningAppBar() {
+  Widget _buildResponsiveAppBar() {
+    final isMobile = _isMobile(context);
+    final isTablet = _isTablet(context);
+
     return Container(
-      height: 80,
+      height: isMobile ? 70 : 80,
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
         boxShadow: [
@@ -345,48 +390,56 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: _getResponsivePadding(context),
+          ),
           child: Row(
             children: [
-              // Back to landing button
+              // Menu/Back button
               Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: widget.onBackToLanding,
+                  onTap: isMobile ? _toggleSidebar : widget.onBackToLanding,
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isMobile ? 10 : 12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      Icons.arrow_back,
+                      isMobile ? Icons.menu : Icons.arrow_back,
                       color: Colors.white.withOpacity(0.8),
-                      size: 20,
+                      size: isMobile ? 18 : 20,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
 
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1,
+              if (!isMobile) ...[
+                const SizedBox(width: 16),
+                // Chart icon
+                Container(
+                  padding: EdgeInsets.all(isTablet ? 10 : 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    _chartTypes[_selectedIndex].icon,
+                    color: Colors.white,
+                    size: isTablet ? 20 : 24,
                   ),
                 ),
-                child: Icon(
-                  _chartTypes[_selectedIndex].icon,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
+              ],
+
               const SizedBox(width: 16),
+
+              // Title and description
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,54 +447,150 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                   children: [
                     Text(
                       _chartTypes[_selectedIndex].name,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: TextStyle(
+                        fontSize: isMobile ? 18 : (isTablet ? 20 : 22),
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: -0.5,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      _chartTypes[_selectedIndex].description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.8),
-                        fontWeight: FontWeight.w500,
+                    if (!isMobile || MediaQuery.of(context).size.height > 600)
+                      Text(
+                        _chartTypes[_selectedIndex].description,
+                        style: TextStyle(
+                          fontSize: isMobile ? 11 : 13,
+                          color: Colors.white.withOpacity(0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
                   ],
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    setState(() {
-                      _showEditPanel = !_showEditPanel;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color:
-                          _showEditPanel
-                              ? Colors.white.withOpacity(0.2)
-                              : Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+
+              // Sidebar toggle (tablet/desktop) or edit button
+              if (!isMobile)
+                Row(
+                  children: [
+                    // Sidebar toggle
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _toggleSidebar,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                _isSidebarOpen
+                                    ? Colors.white.withOpacity(0.2)
+                                    : Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.view_sidebar,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: Icon(
-                      _showEditPanel ? Icons.close : Icons.tune,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 20,
+                    const SizedBox(width: 8),
+                    // Edit panel toggle
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          setState(() {
+                            _showEditPanel = !_showEditPanel;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                _showEditPanel
+                                    ? Colors.white.withOpacity(0.2)
+                                    : Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _showEditPanel ? Icons.close : Icons.tune,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                // Back button for mobile
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: widget.onBackToLanding,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.home,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 18,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return _buildChartArea();
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        if (_isSidebarOpen) _buildAnimatedSidebar(),
+        Expanded(child: _buildChartArea()),
+        if (_showEditPanel && _selectedIndex == 0 && !_isMobile(context))
+          Container(
+            width: _isTablet(context) ? 280 : 300,
+            decoration: BoxDecoration(
+              color: AppColors.sidebarBackground,
+              border: Border(
+                left: BorderSide(color: AppColors.border, width: 1),
+              ),
+            ),
+            child: const Center(
+              child: Text(
+                'Edit Panel\n(Coming Soon)',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: AppColors.sidebarBackground,
+      width: _getSidebarWidth(context),
+      child: _buildSidebarContent(),
     );
   }
 
@@ -450,9 +599,12 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
       animation: _sidebarAnimation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(-300 * (1 - _sidebarAnimation.value), 0),
+          offset: Offset(
+            -_getSidebarWidth(context) * (1 - _sidebarAnimation.value),
+            0,
+          ),
           child: Container(
-            width: 300,
+            width: _getSidebarWidth(context),
             decoration: BoxDecoration(
               color: AppColors.sidebarBackground,
               border: Border(
@@ -466,22 +618,28 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                _buildSidebarHeader(),
-                Expanded(child: _buildChartList()),
-                _buildSidebarFooter(),
-              ],
-            ),
+            child: _buildSidebarContent(),
           ),
         );
       },
     );
   }
 
+  Widget _buildSidebarContent() {
+    return Column(
+      children: [
+        _buildSidebarHeader(),
+        Expanded(child: _buildChartList()),
+        _buildSidebarFooter(),
+      ],
+    );
+  }
+
   Widget _buildSidebarHeader() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 20 : 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.cardBackground, AppColors.surface],
@@ -500,19 +658,21 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                   gradient: AppColors.primaryGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.dashboard_outlined,
                   color: Colors.white,
-                  size: 20,
+                  size: isMobile ? 18 : 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Chart Explorer',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  'Chart Explorer',
+                  style: TextStyle(
+                    fontSize: isMobile ? 16 : 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -520,8 +680,8 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
           const SizedBox(height: 8),
           Text(
             'Interactive demos of ${_chartTypes.length} chart types',
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
@@ -532,13 +692,18 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   }
 
   Widget _buildChartList() {
+    final isMobile = _isMobile(context);
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 16,
+        vertical: 8,
+      ),
       itemCount: _chartTypes.length,
       itemBuilder: (context, index) {
         final isSelected = index == _selectedIndex;
         return Container(
-          margin: const EdgeInsets.only(bottom: 8),
+          margin: EdgeInsets.only(bottom: isMobile ? 6 : 8),
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(16),
@@ -550,6 +715,12 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                     _selectedIndex = index;
                     _showEditPanel = false;
                   });
+
+                  // Close drawer on mobile after selection
+                  if (isMobile) {
+                    Navigator.of(context).pop();
+                  }
+
                   Future.delayed(const Duration(milliseconds: 50), () {
                     if (mounted) {
                       setState(() {});
@@ -559,7 +730,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 decoration: BoxDecoration(
                   gradient: isSelected ? AppColors.primaryGradient : null,
                   color: isSelected ? null : Colors.transparent,
@@ -582,7 +753,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: EdgeInsets.all(isMobile ? 8 : 10),
                       decoration: BoxDecoration(
                         color:
                             isSelected
@@ -598,11 +769,11 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                       ),
                       child: Icon(
                         _chartTypes[index].icon,
-                        size: 18,
+                        size: isMobile ? 16 : 18,
                         color: isSelected ? Colors.white : AppColors.accent,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: isMobile ? 10 : 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -610,7 +781,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                           Text(
                             _chartTypes[index].name,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: isMobile ? 13 : 14,
                               fontWeight: FontWeight.w600,
                               color:
                                   isSelected
@@ -618,20 +789,23 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                                       : AppColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _chartTypes[index].description,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color:
-                                  isSelected
-                                      ? Colors.white.withOpacity(0.8)
-                                      : AppColors.textLight,
-                              fontWeight: FontWeight.w500,
+                          if (!isMobile ||
+                              MediaQuery.of(context).size.height > 600) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              _chartTypes[index].description,
+                              style: TextStyle(
+                                fontSize: isMobile ? 10 : 11,
+                                color:
+                                    isSelected
+                                        ? Colors.white.withOpacity(0.8)
+                                        : AppColors.textLight,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -642,9 +816,9 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.check,
-                          size: 12,
+                          size: isMobile ? 10 : 12,
                           color: Colors.white,
                         ),
                       ),
@@ -659,8 +833,10 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   }
 
   Widget _buildSidebarFooter() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.surface, AppColors.cardBackground],
@@ -676,17 +852,21 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
               gradient: AppColors.accentGradient,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.auto_graph, color: Colors.white, size: 16),
+            child: Icon(
+              Icons.auto_graph,
+              color: Colors.white,
+              size: isMobile ? 14 : 16,
+            ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Material Charts',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: isMobile ? 11 : 12,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -694,7 +874,7 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 Text(
                   'v1.0.0 - Interactive Mode',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: isMobile ? 9 : 10,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -707,18 +887,21 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   }
 
   Widget _buildChartArea() {
+    final isMobile = _isMobile(context);
+    final padding = _getResponsivePadding(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       child: Card(
         elevation: 0,
         color: AppColors.background,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
           side: BorderSide(color: AppColors.border, width: 1),
         ),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
             gradient: LinearGradient(
               colors: [AppColors.background, AppColors.cardBackground],
               begin: Alignment.topLeft,
@@ -733,12 +916,12 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(32),
+            padding: EdgeInsets.all(isMobile ? 20 : 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildChartHeader(),
-                const SizedBox(height: 32),
+                SizedBox(height: isMobile ? 20 : 32),
                 Expanded(child: Center(child: _getChartWidget())),
               ],
             ),
@@ -749,13 +932,16 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
   }
 
   Widget _buildChartHeader() {
+    final isMobile = _isMobile(context);
+    final isTablet = _isTablet(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(16),
@@ -770,18 +956,18 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
               child: Icon(
                 _chartTypes[_selectedIndex].icon,
                 color: Colors.white,
-                size: 28,
+                size: isMobile ? 24 : (isTablet ? 26 : 28),
               ),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: isMobile ? 12 : 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _chartTypes[_selectedIndex].name,
-                    style: const TextStyle(
-                      fontSize: 28,
+                    style: TextStyle(
+                      fontSize: isMobile ? 24 : (isTablet ? 26 : 28),
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
                       letterSpacing: -1,
@@ -790,8 +976,8 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                   const SizedBox(height: 4),
                   Text(
                     _chartTypes[_selectedIndex].description,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: isMobile ? 14 : (isTablet ? 15 : 16),
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -799,35 +985,41 @@ class _ChartsDemoScreenState extends State<ChartsDemoScreen>
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: AppColors.accentGradient,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _showEditPanel ? Icons.edit : Icons.space_dashboard_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _showEditPanel ? 'Editing' : 'Interactive',
-                    style: const TextStyle(
+            if (!isMobile)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: AppColors.accentGradient,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _showEditPanel
+                          ? Icons.edit
+                          : Icons.space_dashboard_rounded,
                       color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      size: 16,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      _showEditPanel ? 'Editing' : 'Interactive',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: isMobile ? 16 : 20),
         Container(
           height: 2,
           decoration: BoxDecoration(

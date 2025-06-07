@@ -143,6 +143,32 @@ class _LandingPageState extends State<LandingPage>
     super.dispose();
   }
 
+  // Responsive helper methods
+  bool _isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 600;
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 600 &&
+      MediaQuery.of(context).size.width < 1200;
+  bool _isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+
+  double _getResponsivePadding(BuildContext context) {
+    if (_isMobile(context)) return 20;
+    if (_isTablet(context)) return 30;
+    return 40;
+  }
+
+  double _getResponsiveFontSize(
+    BuildContext context,
+    double mobile,
+    double tablet,
+    double desktop,
+  ) {
+    if (_isMobile(context)) return mobile;
+    if (_isTablet(context)) return tablet;
+    return desktop;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,20 +200,29 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildHeroSection() {
+    final screenSize = MediaQuery.of(context).size;
+    final isMobile = _isMobile(context);
+    final isTablet = _isTablet(context);
+
     return SizedBox(
-      height: MediaQuery.of(context).size.height,
+      height: isMobile ? screenSize.height * 0.9 : screenSize.height,
       child: Stack(
         children: [
-          // Background particles effect
-          ...List.generate(15, (index) => _buildFloatingParticle(index)),
+          // Background particles effect - fewer on mobile for performance
+          ...List.generate(
+            isMobile ? 8 : (isTablet ? 12 : 15),
+            (index) => _buildFloatingParticle(index),
+          ),
 
           // Main content
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: EdgeInsets.symmetric(
+                horizontal: _getResponsivePadding(context),
+              ),
               child: Column(
                 children: [
-                  const SizedBox(height: 60),
+                  SizedBox(height: isMobile ? 30 : 60),
 
                   // Logo/Brand section
                   AnimatedBuilder(
@@ -198,12 +233,18 @@ class _LandingPageState extends State<LandingPage>
                         child: Opacity(
                           opacity: _heroAnimation.value,
                           child: Row(
+                            mainAxisAlignment:
+                                isMobile
+                                    ? MainAxisAlignment.center
+                                    : MainAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: EdgeInsets.all(isMobile ? 12 : 16),
                                 decoration: BoxDecoration(
                                   gradient: AppColors.primaryGradient,
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(
+                                    isMobile ? 16 : 20,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppColors.primary.withOpacity(0.3),
@@ -212,17 +253,22 @@ class _LandingPageState extends State<LandingPage>
                                     ),
                                   ],
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.auto_graph,
                                   color: Colors.white,
-                                  size: 32,
+                                  size: isMobile ? 24 : 32,
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              const Text(
+                              Text(
                                 'Material Charts',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: _getResponsiveFontSize(
+                                    context,
+                                    20,
+                                    22,
+                                    24,
+                                  ),
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
                                 ),
@@ -251,26 +297,31 @@ class _LandingPageState extends State<LandingPage>
                                 shaderCallback:
                                     (bounds) => AppColors.primaryGradient
                                         .createShader(bounds),
-                                child: const Text(
+                                child: Text(
                                   'Build Charts\nInteractively',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 72,
+                                    fontSize: _getResponsiveFontSize(
+                                      context,
+                                      48,
+                                      60,
+                                      72,
+                                    ),
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
-                                    letterSpacing: -2,
+                                    letterSpacing: isMobile ? -1 : -2,
                                     height: 0.9,
                                   ),
                                 ),
                               ),
 
-                              const SizedBox(height: 24),
+                              SizedBox(height: isMobile ? 16 : 24),
 
                               // Subtitle
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 16 : 24,
+                                  vertical: isMobile ? 8 : 12,
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withOpacity(0.1),
@@ -279,49 +330,82 @@ class _LandingPageState extends State<LandingPage>
                                     color: AppColors.primary.withOpacity(0.2),
                                   ),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Effort Zero • Productivity 100%',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: _getResponsiveFontSize(
+                                      context,
+                                      14,
+                                      16,
+                                      18,
+                                    ),
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primary,
                                   ),
                                 ),
                               ),
 
-                              const SizedBox(height: 32),
+                              SizedBox(height: isMobile ? 20 : 32),
 
                               // Description
-                              const Text(
-                                'Design stunning data visualizations with zero coding effort.\nCustomize, preview, and integrate seamlessly into your Flutter apps.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.5,
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 0 : 40,
+                                ),
+                                child: Text(
+                                  'Design stunning data visualizations with zero coding effort.\nCustomize, preview, and integrate seamlessly into your Flutter apps.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: _getResponsiveFontSize(
+                                      context,
+                                      16,
+                                      18,
+                                      20,
+                                    ),
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.5,
+                                  ),
                                 ),
                               ),
 
-                              const SizedBox(height: 48),
+                              SizedBox(height: isMobile ? 32 : 48),
 
                               // CTA Buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _buildPrimaryButton(
-                                    'Explore Charts',
-                                    Icons.rocket_launch,
-                                    widget.onExploreCharts,
+                              isMobile
+                                  ? Column(
+                                    children: [
+                                      _buildPrimaryButton(
+                                        'Explore Charts',
+                                        Icons.rocket_launch,
+                                        widget.onExploreCharts,
+                                        isFullWidth: true,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      _buildSecondaryButton(
+                                        'View Docs',
+                                        Icons.description_outlined,
+                                        () => _showDocumentation(),
+                                        isFullWidth: true,
+                                      ),
+                                    ],
+                                  )
+                                  : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildPrimaryButton(
+                                        'Explore Charts',
+                                        Icons.rocket_launch,
+                                        widget.onExploreCharts,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      _buildSecondaryButton(
+                                        'View Docs',
+                                        Icons.description_outlined,
+                                        () => _showDocumentation(),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 20),
-                                  _buildSecondaryButton(
-                                    'View Docs',
-                                    Icons.description_outlined,
-                                    () => _showDocumentation(),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
                         ),
@@ -331,44 +415,47 @@ class _LandingPageState extends State<LandingPage>
 
                   const Spacer(),
 
-                  // Scroll indicator
-                  AnimatedBuilder(
-                    animation: _heroAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _heroAnimation.value,
-                        child: Column(
-                          children: [
-                            const Text(
-                              'Discover Features',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textLight,
-                                fontWeight: FontWeight.w500,
+                  // Scroll indicator - hidden on mobile to save space
+                  if (!isMobile)
+                    AnimatedBuilder(
+                      animation: _heroAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _heroAnimation.value,
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Discover Features',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textLight,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            TweenAnimationBuilder(
-                              duration: const Duration(seconds: 2),
-                              tween: Tween<double>(begin: 0, end: 1),
-                              builder: (context, value, child) {
-                                return Transform.translate(
-                                  offset: Offset(0, 10 * value),
-                                  child: Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: AppColors.primary.withOpacity(value),
-                                    size: 24,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              const SizedBox(height: 8),
+                              TweenAnimationBuilder(
+                                duration: const Duration(seconds: 2),
+                                tween: Tween<double>(begin: 0, end: 1),
+                                builder: (context, value, child) {
+                                  return Transform.translate(
+                                    offset: Offset(0, 10 * value),
+                                    child: Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: AppColors.primary.withOpacity(
+                                        value,
+                                      ),
+                                      size: 24,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
 
-                  const SizedBox(height: 40),
+                  SizedBox(height: isMobile ? 20 : 40),
                 ],
               ),
             ),
@@ -379,8 +466,14 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildFeaturesSection() {
+    final isMobile = _isMobile(context);
+    final padding = _getResponsivePadding(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
+      padding: EdgeInsets.symmetric(
+        horizontal: padding,
+        vertical: isMobile ? 60 : 100,
+      ),
       child: Column(
         children: [
           AnimatedBuilder(
@@ -392,24 +485,34 @@ class _LandingPageState extends State<LandingPage>
                   opacity: _featuresAnimation.value,
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Developer-First Experience',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 48,
+                          fontSize: _getResponsiveFontSize(context, 32, 40, 48),
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
                           letterSpacing: -1,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Built for modern developers who value efficiency and beautiful code',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
+                      SizedBox(height: isMobile ? 12 : 16),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 0 : 40,
+                        ),
+                        child: Text(
+                          'Built for modern developers who value efficiency and beautiful code',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: _getResponsiveFontSize(
+                              context,
+                              16,
+                              17,
+                              18,
+                            ),
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
@@ -419,9 +522,9 @@ class _LandingPageState extends State<LandingPage>
             },
           ),
 
-          const SizedBox(height: 80),
+          SizedBox(height: isMobile ? 40 : 80),
 
-          // Features grid
+          // Features grid - stacked on mobile
           AnimatedBuilder(
             animation: _featuresAnimation,
             builder: (context, child) {
@@ -429,39 +532,68 @@ class _LandingPageState extends State<LandingPage>
                 offset: Offset(0, 100 * (1 - _featuresAnimation.value)),
                 child: Opacity(
                   opacity: _featuresAnimation.value,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildFeatureCard(
-                          'Interactive Design',
-                          'Customize every aspect with live preview. See changes instantly without writing code.',
-                          Icons.design_services,
-                          AppColors.primary,
-                          0,
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: _buildFeatureCard(
-                          'Code Generation',
-                          'Get production-ready Flutter code automatically. Copy, paste, and integrate.',
-                          Icons.code,
-                          AppColors.accent,
-                          200,
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: _buildFeatureCard(
-                          'Zero Learning Curve',
-                          'Intuitive interface that feels natural. Start creating beautiful charts immediately.',
-                          Icons.bolt,
-                          AppColors.primaryLight,
-                          400,
-                        ),
-                      ),
-                    ],
-                  ),
+                  child:
+                      isMobile
+                          ? Column(
+                            children: [
+                              _buildFeatureCard(
+                                'Interactive Design',
+                                'Customize every aspect with live preview. See changes instantly without writing code.',
+                                Icons.design_services,
+                                AppColors.primary,
+                                0,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildFeatureCard(
+                                'Code Generation',
+                                'Get production-ready Flutter code automatically. Copy, paste, and integrate.',
+                                Icons.code,
+                                AppColors.accent,
+                                200,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildFeatureCard(
+                                'Zero Learning Curve',
+                                'Intuitive interface that feels natural. Start creating beautiful charts immediately.',
+                                Icons.bolt,
+                                AppColors.primaryLight,
+                                400,
+                              ),
+                            ],
+                          )
+                          : Row(
+                            children: [
+                              Expanded(
+                                child: _buildFeatureCard(
+                                  'Interactive Design',
+                                  'Customize every aspect with live preview. See changes instantly without writing code.',
+                                  Icons.design_services,
+                                  AppColors.primary,
+                                  0,
+                                ),
+                              ),
+                              const SizedBox(width: 30),
+                              Expanded(
+                                child: _buildFeatureCard(
+                                  'Code Generation',
+                                  'Get production-ready Flutter code automatically. Copy, paste, and integrate.',
+                                  Icons.code,
+                                  AppColors.accent,
+                                  200,
+                                ),
+                              ),
+                              const SizedBox(width: 30),
+                              Expanded(
+                                child: _buildFeatureCard(
+                                  'Zero Learning Curve',
+                                  'Intuitive interface that feels natural. Start creating beautiful charts immediately.',
+                                  Icons.bolt,
+                                  AppColors.primaryLight,
+                                  400,
+                                ),
+                              ),
+                            ],
+                          ),
                 ),
               );
             },
@@ -472,8 +604,14 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildChartShowcaseSection() {
+    final isMobile = _isMobile(context);
+    final padding = _getResponsivePadding(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
+      padding: EdgeInsets.symmetric(
+        horizontal: padding,
+        vertical: isMobile ? 60 : 100,
+      ),
       child: Column(
         children: [
           AnimatedBuilder(
@@ -485,22 +623,22 @@ class _LandingPageState extends State<LandingPage>
                   opacity: _chartGridAnimation.value,
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Every Chart You Need',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 48,
+                          fontSize: _getResponsiveFontSize(context, 32, 40, 48),
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
                           letterSpacing: -1,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: isMobile ? 12 : 16),
+                      Text(
                         'From basic visualizations to complex financial charts',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: _getResponsiveFontSize(context, 16, 17, 18),
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -512,7 +650,7 @@ class _LandingPageState extends State<LandingPage>
             },
           ),
 
-          const SizedBox(height: 80),
+          SizedBox(height: isMobile ? 40 : 80),
 
           // Chart carousel
           AnimatedBuilder(
@@ -523,7 +661,7 @@ class _LandingPageState extends State<LandingPage>
                 child: Opacity(
                   opacity: _chartGridAnimation.value,
                   child: SizedBox(
-                    height: 400,
+                    height: isMobile ? 300 : 400,
                     child: PageView.builder(
                       controller: _chartCarouselController,
                       itemCount: _chartShowcases.length,
@@ -569,12 +707,18 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildCallToActionSection() {
+    final isMobile = _isMobile(context);
+    final padding = _getResponsivePadding(context);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-      padding: const EdgeInsets.all(60),
+      margin: EdgeInsets.symmetric(
+        horizontal: padding,
+        vertical: isMobile ? 60 : 100,
+      ),
+      padding: EdgeInsets.all(isMobile ? 40 : 60),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(isMobile ? 24 : 32),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.3),
@@ -585,32 +729,33 @@ class _LandingPageState extends State<LandingPage>
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'Ready to Build Amazing Charts?',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 40,
+              fontSize: _getResponsiveFontSize(context, 28, 36, 40),
               fontWeight: FontWeight.w800,
               color: Colors.white,
               letterSpacing: -1,
             ),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: isMobile ? 12 : 16),
+          Text(
             'Join thousands of developers creating beautiful data visualizations',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: _getResponsiveFontSize(context, 16, 17, 18),
               color: Colors.white,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: isMobile ? 30 : 40),
           _buildPrimaryButton(
             'Start Building Now',
             Icons.arrow_forward,
             widget.onExploreCharts,
             isLight: true,
+            isFullWidth: isMobile,
           ),
         ],
       ),
@@ -618,59 +763,120 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildFooterSection() {
+    final isMobile = _isMobile(context);
+    final padding = _getResponsivePadding(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.auto_graph,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.symmetric(
+        horizontal: padding,
+        vertical: isMobile ? 40 : 60,
+      ),
+      child:
+          isMobile
+              ? Column(
                 children: [
-                  Text(
-                    'Material Charts',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.auto_graph,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Material Charts',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Interactive Flutter Chart Library',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Interactive Flutter Chart Library',
+                  const SizedBox(height: 20),
+                  const Text(
+                    '© 2024 Material Charts. Built for developers.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: AppColors.textLight,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+              : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.auto_graph,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Material Charts',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Interactive Flutter Chart Library',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    '© 2024 Material Charts. Built for developers.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textLight,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          const Text(
-            '© 2024 Material Charts. Built for developers.',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textLight,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -681,6 +887,8 @@ class _LandingPageState extends State<LandingPage>
     Color color,
     int delay,
   ) {
+    final isMobile = _isMobile(context);
+
     return TweenAnimationBuilder(
       duration: Duration(milliseconds: 800 + delay),
       tween: Tween<double>(begin: 0, end: 1),
@@ -690,10 +898,10 @@ class _LandingPageState extends State<LandingPage>
           child: Opacity(
             opacity: value,
             child: Container(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(isMobile ? 24 : 32),
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
                 border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
@@ -706,7 +914,7 @@ class _LandingPageState extends State<LandingPage>
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [color, color.withOpacity(0.8)],
@@ -715,24 +923,28 @@ class _LandingPageState extends State<LandingPage>
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(icon, color: Colors.white, size: 32),
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: isMobile ? 28 : 32,
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 20, 22, 24),
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: isMobile ? 8 : 12),
                   Text(
                     description,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 14, 15, 16),
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                       height: 1.5,
@@ -748,12 +960,15 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildChartShowcaseCard(ChartShowcase showcase) {
+    final isMobile = _isMobile(context);
+    final isTablet = _isTablet(context);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(40),
+      margin: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 20),
+      padding: EdgeInsets.all(isMobile ? 20 : (isTablet ? 30 : 40)),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
@@ -763,90 +978,168 @@ class _LandingPageState extends State<LandingPage>
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [showcase.color, showcase.color.withOpacity(0.8)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+      child:
+          isMobile
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          showcase.color,
+                          showcase.color.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    child: Icon(showcase.icon, color: Colors.white, size: 32),
                   ),
-                  child: Icon(showcase.icon, color: Colors.white, size: 32),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  showcase.name,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                  const SizedBox(height: 20),
+                  Text(
+                    showcase.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  showcase.description,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 8),
+                  Text(
+                    showcase.description,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                ...showcase.features.map(
-                  (feature) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
+                  const SizedBox(height: 16),
+                  ...showcase.features.map(
+                    (feature) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: showcase.color,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            feature,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: showcase.color,
-                          size: 16,
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                showcase.color,
+                                showcase.color.withOpacity(0.8),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            showcase.icon,
+                            color: Colors.white,
+                            size: 32,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: 24),
                         Text(
-                          feature,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          showcase.name,
+                          style: TextStyle(
+                            fontSize: isTablet ? 28 : 32,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          showcase.description,
+                          style: TextStyle(
+                            fontSize: isTablet ? 16 : 18,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ...showcase.features.map(
+                          (feature) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: showcase.color,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  feature,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 40),
-          Expanded(
-            child: Container(
-              height: 300,
-              decoration: BoxDecoration(
-                color: showcase.color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: showcase.color.withOpacity(0.2)),
+                  if (!isMobile) ...[
+                    const SizedBox(width: 40),
+                    Expanded(
+                      child: Container(
+                        height: isTablet ? 250 : 300,
+                        decoration: BoxDecoration(
+                          color: showcase.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: showcase.color.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            showcase.icon,
+                            size: isTablet ? 60 : 80,
+                            color: showcase.color.withOpacity(0.3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              child: Center(
-                child: Icon(
-                  showcase.icon,
-                  size: 80,
-                  color: showcase.color.withOpacity(0.3),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -855,50 +1148,59 @@ class _LandingPageState extends State<LandingPage>
     IconData icon,
     VoidCallback onPressed, {
     bool isLight = false,
+    bool isFullWidth = false,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onPressed,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          decoration: BoxDecoration(
-            gradient:
-                isLight
-                    ? LinearGradient(
-                      colors: [Colors.white, Colors.white.withOpacity(0.9)],
-                    )
-                    : AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: (isLight ? Colors.black : AppColors.primary).withOpacity(
-                  0.2,
+    final isMobile = _isMobile(context);
+
+    return SizedBox(
+      width: isFullWidth ? double.infinity : null,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 24 : 32,
+              vertical: isMobile ? 12 : 16,
+            ),
+            decoration: BoxDecoration(
+              gradient:
+                  isLight
+                      ? LinearGradient(
+                        colors: [Colors.white, Colors.white.withOpacity(0.9)],
+                      )
+                      : AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: (isLight ? Colors.black : AppColors.primary)
+                      .withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
                 ),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isLight ? AppColors.primary : Colors.white,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                text,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
                   color: isLight ? AppColors.primary : Colors.white,
+                  size: isMobile ? 18 : 20,
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 16,
+                    fontWeight: FontWeight.w600,
+                    color: isLight ? AppColors.primary : Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -908,34 +1210,48 @@ class _LandingPageState extends State<LandingPage>
   Widget _buildSecondaryButton(
     String text,
     IconData icon,
-    VoidCallback onPressed,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onPressed,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.textSecondary, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+    VoidCallback onPressed, {
+    bool isFullWidth = false,
+  }) {
+    final isMobile = _isMobile(context);
+
+    return SizedBox(
+      width: isFullWidth ? double.infinity : null,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 24 : 32,
+              vertical: isMobile ? 12 : 16,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
                   color: AppColors.textSecondary,
+                  size: isMobile ? 18 : 20,
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -976,7 +1292,6 @@ class _LandingPageState extends State<LandingPage>
   }
 
   void _showDocumentation() {
-    // You can implement navigation to documentation here
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Documentation coming soon!'),
