@@ -44,7 +44,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   bool _showRightPanel = false;
   bool _showCode = false;
   Key _chartKey = UniqueKey();
-  int _selectedDateFormatIndex = 0; // Track selected date format
+  int _selectedDateFormatIndex = 0;
 
   // Chart Configuration
   GanttConfig _chartConfig = const GanttConfig();
@@ -68,45 +68,192 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // Main Content Area
-          Expanded(
-            flex: _showRightPanel ? 7 : 10,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GanttWidgets.buildDocumentationHeader(),
-                  const SizedBox(height: 32),
-                  _buildInteractiveDemo(),
-                  const SizedBox(height: 32),
-                  _buildPropertiesSection(),
-                  const SizedBox(height: 32),
-                  _buildCodeExamples(),
-                  const SizedBox(height: 32),
-                  _buildApiReference(),
-                ],
-              ),
-            ),
-          ),
+    final screenSize = MediaQuery.of(context).size;
+    final isDesktop = screenSize.width >= 1200;
+    final isTablet = screenSize.width >= 768 && screenSize.width < 1200;
+    final isMobile = screenSize.width < 768;
 
-          // Right Side Panel
-          if (_showRightPanel) ...[
-            Container(width: 1, color: AppColors.border),
-            Expanded(flex: 3, child: _buildRightSidePanel()),
-          ],
+    // Auto-hide panel on mobile
+    if (isMobile && _showRightPanel) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => _showRightPanel = false);
+      });
+    }
+
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (isMobile) {
+            return _buildMobileLayout(constraints);
+          } else if (isTablet) {
+            return _buildTabletLayout(constraints);
+          } else {
+            return _buildDesktopLayout(constraints);
+          }
+        },
+      ),
+      // Mobile floating action button for controls
+      floatingActionButton: isMobile ? _buildMobileControls() : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  Widget _buildDesktopLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        // Main Content Area
+        Expanded(
+          flex: _showRightPanel ? 7 : 10,
+          child: _buildMainContent(constraints),
+        ),
+
+        // Right Side Panel
+        if (_showRightPanel) ...[
+          Container(width: 1, color: AppColors.border),
+          Expanded(flex: 3, child: _buildRightSidePanel()),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        // Main Content Area
+        Expanded(
+          flex: _showRightPanel ? 6 : 10,
+          child: _buildMainContent(constraints),
+        ),
+
+        // Right Side Panel
+        if (_showRightPanel) ...[
+          Container(width: 1, color: AppColors.border),
+          Expanded(flex: 4, child: _buildRightSidePanel()),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(BoxConstraints constraints) {
+    if (_showRightPanel) {
+      // Full-screen panel on mobile
+      return _buildRightSidePanel();
+    }
+
+    return _buildMainContent(constraints);
+  }
+
+  Widget _buildMainContent(BoxConstraints constraints) {
+    final screenWidth = constraints.maxWidth;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1200;
+
+    final padding =
+        isMobile
+            ? 16.0
+            : isTablet
+            ? 20.0
+            : 24.0;
+    final spacing =
+        isMobile
+            ? 20.0
+            : isTablet
+            ? 28.0
+            : 32.0;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(padding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GanttWidgets.buildDocumentationHeader(),
+          SizedBox(height: spacing),
+          _buildInteractiveDemo(constraints),
+          SizedBox(height: spacing),
+          _buildPropertiesSection(),
+          SizedBox(height: spacing),
+          _buildCodeExamples(),
+          SizedBox(height: spacing),
+          _buildApiReference(),
+          // Extra bottom padding on mobile for FAB
+          if (isMobile) const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  // Interactive Demo with animation support
-  Widget _buildInteractiveDemo() {
+  Widget _buildMobileControls() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (_showRightPanel)
+          FloatingActionButton(
+            heroTag: "close",
+            mini: true,
+            onPressed: () => setState(() => _showRightPanel = false),
+            backgroundColor: Colors.red.shade400,
+            child: const Icon(Icons.close, color: Colors.white),
+          ),
+        if (_showRightPanel) const SizedBox(height: 8),
+        FloatingActionButton(
+          heroTag: "editor",
+          onPressed:
+              () => setState(() {
+                _showRightPanel = !_showRightPanel;
+                _showCode = false;
+              }),
+          backgroundColor: AppColors.primary,
+          child: Icon(
+            _showRightPanel ? Icons.close : Icons.tune,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        FloatingActionButton(
+          heroTag: "code",
+          mini: true,
+          onPressed:
+              () => setState(() {
+                _showRightPanel = true;
+                _showCode = true;
+              }),
+          backgroundColor: AppColors.accent,
+          child: const Icon(Icons.code, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInteractiveDemo(BoxConstraints constraints) {
+    final screenWidth = constraints.maxWidth;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1200;
+
+    // Responsive chart dimensions
+    double chartWidth;
+    double chartHeight;
+
+    if (isMobile) {
+      chartWidth = screenWidth - 32; // Account for padding
+      chartHeight = 300;
+    } else if (isTablet) {
+      chartWidth = _showRightPanel ? screenWidth * 0.6 - 40 : screenWidth - 40;
+      chartHeight = 350;
+    } else {
+      chartWidth = _showRightPanel ? 600 : _chartConfig.width;
+      chartHeight = _showRightPanel ? 350 : _chartConfig.height;
+    }
+
+    final padding =
+        isMobile
+            ? 16.0
+            : isTablet
+            ? 20.0
+            : 24.0;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -115,32 +262,22 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text(
-                'Interactive Demo',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              _buildDemoControls(),
-            ],
-          ),
+          // Header with responsive controls
+          _buildDemoHeader(isMobile),
           const SizedBox(height: 8),
           Text(
             _examples[_selectedExample].description,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 14,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
+
+          // Chart container
           Container(
             width: double.infinity,
-            height: _showRightPanel ? 350 : 450,
+            height: chartHeight,
             decoration: BoxDecoration(
               color:
                   _chartConfig.backgroundColor == Colors.transparent
@@ -153,160 +290,96 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: MaterialGanttChart(
-                key: _chartKey,
-                data: _getStyledData(), // Use styled data with custom colors
-                width: _showRightPanel ? 600 : _chartConfig.width,
-                height: _showRightPanel ? 350 : _chartConfig.height,
-                interactive: _chartConfig.interactive,
-                style: GanttChartStyle(
-                  lineColor: _chartConfig.lineColor,
-                  pointColor: _chartConfig.pointColor,
-                  connectionLineColor: _chartConfig.connectionLineColor,
-                  backgroundColor: _chartConfig.backgroundColor,
-                  lineWidth: _chartConfig.lineWidth,
-                  pointRadius: _chartConfig.pointRadius,
-                  connectionLineWidth: _chartConfig.connectionLineWidth,
-                  verticalSpacing: _chartConfig.verticalSpacing,
-                  horizontalPadding: _chartConfig.horizontalPadding,
-                  labelOffset: _chartConfig.labelOffset,
-                  timelineYOffset: _chartConfig.timelineYOffset,
-                  showConnections: _chartConfig.showConnections,
-                  animationDuration:
-                      _chartConfig.enableAnimation
-                          ? _chartConfig.animationDuration
-                          : Duration.zero,
-                  animationCurve: _chartConfig.animationCurve,
-                  dateFormat: _chartConfig.dateFormat,
-                  labelStyle:
-                      _chartConfig.labelStyle ??
-                      const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
-                  dateStyle:
-                      _chartConfig.dateStyle ??
-                      const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                  descriptionStyle:
-                      _chartConfig.descriptionStyle ??
-                      const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: chartWidth < 400 ? 400 : chartWidth, // Minimum width
+                  height: chartHeight,
+                  child: MaterialGanttChart(
+                    key: _chartKey,
+                    data: _getStyledData(),
+                    width: chartWidth < 400 ? 400 : chartWidth,
+                    height: chartHeight,
+                    interactive: _chartConfig.interactive,
+                    style: _buildResponsiveChartStyle(isMobile, isTablet),
+                    onPointTap: (data) => _showTaskDetails(context, data),
+                    onAnimationComplete: () => _showAnimationComplete(),
+                  ),
                 ),
-                onPointTap: (data) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Tapped: ${data.label}'),
-                      duration: const Duration(seconds: 2),
-                      backgroundColor: AppColors.primary,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
-                },
-                onAnimationComplete: () {
-                  if (_chartConfig.enableAnimation) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${_examples[_selectedExample].title} timeline rendered!',
-                        ),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: AppColors.primary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        margin: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).size.height - 100,
-                          left: 20,
-                          right: 20,
-                        ),
-                      ),
-                    );
-                  }
-                },
               ),
             ),
           ),
           const SizedBox(height: 16),
+
           // Project info
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _examples[_selectedExample].primaryColor.withValues(
-                alpha: 0.1,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _examples[_selectedExample].primaryColor.withValues(
-                  alpha: 0.3,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 18,
-                  color: _examples[_selectedExample].primaryColor,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Project: ${_examples[_selectedExample].title}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: _examples[_selectedExample].primaryColor,
-                        ),
-                      ),
-                      if (_examples[_selectedExample].metadata != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          _examples[_selectedExample].metadata!.entries
-                              .map((e) => '${e.key}: ${e.value}')
-                              .join(' • '),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: _examples[_selectedExample].primaryColor
-                                .withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Text(
-                  '${_examples[_selectedExample].data.length} Tasks',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _examples[_selectedExample].primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _buildProjectInfo(isMobile),
         ],
       ),
     );
   }
 
-  Widget _buildDemoControls() {
+  Widget _buildDemoHeader(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Interactive Demo',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildDemoControls(),
+        ],
+      );
+    }
+
     return Row(
+      children: [
+        const Text(
+          'Interactive Demo',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const Spacer(),
+        _buildDemoControls(),
+      ],
+    );
+  }
+
+  Widget _buildDemoControls() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
+    if (isMobile) {
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          GanttWidgets.buildControlButton('Live Editor', Icons.tune, () {
+            setState(() {
+              _showRightPanel = true;
+              _showCode = false;
+            });
+          }, isActive: _showRightPanel && !_showCode),
+          GanttWidgets.buildControlButton('Live Code', Icons.code, () {
+            setState(() {
+              _showRightPanel = true;
+              _showCode = true;
+            });
+          }, isActive: _showRightPanel && _showCode),
+        ],
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         GanttWidgets.buildControlButton('Live Editor', Icons.tune, () {
           setState(() {
@@ -325,70 +398,157 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
     );
   }
 
+  GanttChartStyle _buildResponsiveChartStyle(bool isMobile, bool isTablet) {
+    // Adjust styling based on screen size
+    double verticalSpacing = _chartConfig.verticalSpacing;
+    double horizontalPadding = _chartConfig.horizontalPadding;
+    double labelOffset = _chartConfig.labelOffset;
+    double timelineYOffset = _chartConfig.timelineYOffset;
+
+    if (isMobile) {
+      verticalSpacing *= 0.8;
+      horizontalPadding *= 0.7;
+      labelOffset *= 0.8;
+      timelineYOffset *= 0.8;
+    } else if (isTablet) {
+      verticalSpacing *= 0.9;
+      horizontalPadding *= 0.85;
+      labelOffset *= 0.9;
+      timelineYOffset *= 0.9;
+    }
+
+    return GanttChartStyle(
+      lineColor: _chartConfig.lineColor,
+      pointColor: _chartConfig.pointColor,
+      connectionLineColor: _chartConfig.connectionLineColor,
+      backgroundColor: _chartConfig.backgroundColor,
+      lineWidth: _chartConfig.lineWidth,
+      pointRadius: _chartConfig.pointRadius,
+      connectionLineWidth: _chartConfig.connectionLineWidth,
+      verticalSpacing: verticalSpacing,
+      horizontalPadding: horizontalPadding,
+      labelOffset: labelOffset,
+      timelineYOffset: timelineYOffset,
+      showConnections: _chartConfig.showConnections,
+      animationDuration:
+          _chartConfig.enableAnimation
+              ? _chartConfig.animationDuration
+              : Duration.zero,
+      animationCurve: _chartConfig.animationCurve,
+      dateFormat: _chartConfig.dateFormat,
+      labelStyle:
+          _chartConfig.labelStyle ??
+          TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: isMobile ? 12 : 14,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+          ),
+      dateStyle:
+          _chartConfig.dateStyle ??
+          TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: isMobile ? 10 : 11,
+            fontWeight: FontWeight.w600,
+          ),
+      descriptionStyle:
+          _chartConfig.descriptionStyle ??
+          TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: isMobile ? 11 : 12,
+          ),
+    );
+  }
+
+  Widget _buildProjectInfo(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      decoration: BoxDecoration(
+        color: _examples[_selectedExample].primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _examples[_selectedExample].primaryColor.withValues(
+            alpha: 0.3,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: isMobile ? 16 : 18,
+                color: _examples[_selectedExample].primaryColor,
+              ),
+              SizedBox(width: isMobile ? 8 : 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Project: ${_examples[_selectedExample].title}',
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 13,
+                        fontWeight: FontWeight.w600,
+                        color: _examples[_selectedExample].primaryColor,
+                      ),
+                    ),
+                    if (_examples[_selectedExample].metadata != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _examples[_selectedExample].metadata!.entries
+                            .map((e) => '${e.key}: ${e.value}')
+                            .join(' • '),
+                        style: TextStyle(
+                          fontSize: isMobile ? 10 : 11,
+                          color: _examples[_selectedExample].primaryColor
+                              .withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (!isMobile) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '${_examples[_selectedExample].data.length} Tasks',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _examples[_selectedExample].primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildRightSidePanel() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Container(
       color: AppColors.surface,
       child: Column(
         children: [
           // Panel Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             decoration: BoxDecoration(
               color: AppColors.cardBackground,
               border: Border(bottom: BorderSide(color: AppColors.border)),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  _showCode ? Icons.code : Icons.tune,
-                  size: 20,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _showCode ? 'Live Code Editor' : 'Live Customization',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                // Toggle between customize and code
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildPanelToggle(
-                        'Customize',
-                        Icons.tune,
-                        !_showCode,
-                        () => setState(() => _showCode = false),
-                      ),
-                      _buildPanelToggle(
-                        'Code',
-                        Icons.code,
-                        _showCode,
-                        () => setState(() => _showCode = true),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () => setState(() => _showRightPanel = false),
-                  icon: const Icon(Icons.close, size: 18),
-                  color: AppColors.textSecondary,
-                  splashRadius: 16,
-                ),
-              ],
-            ),
+            child: _buildPanelHeader(isMobile),
           ),
 
           // Panel Content
@@ -400,7 +560,99 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
     );
   }
 
-  Widget _buildPanelToggle(
+  Widget _buildPanelHeader(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                _showCode ? Icons.code : Icons.tune,
+                size: 20,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _showCode ? 'Live Code Editor' : 'Live Customization',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => setState(() => _showRightPanel = false),
+                icon: const Icon(Icons.close, size: 18),
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildPanelToggle(),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Icon(
+          _showCode ? Icons.code : Icons.tune,
+          size: 20,
+          color: AppColors.primary,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            _showCode ? 'Live Code Editor' : 'Live Customization',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        _buildPanelToggle(),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: () => setState(() => _showRightPanel = false),
+          icon: const Icon(Icons.close, size: 18),
+          color: AppColors.textSecondary,
+          splashRadius: 16,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPanelToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildPanelToggleButton(
+            'Customize',
+            Icons.tune,
+            !_showCode,
+            () => setState(() => _showCode = false),
+          ),
+          _buildPanelToggleButton(
+            'Code',
+            Icons.code,
+            _showCode,
+            () => setState(() => _showCode = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPanelToggleButton(
     String label,
     IconData icon,
     bool isActive,
@@ -437,10 +689,13 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
     );
   }
 
-  // Comprehensive customization panel for Gantt charts
   Widget _buildCustomizationPanel() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final padding = isMobile ? 12.0 : 16.0;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -459,9 +714,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
                 _selectedDateFormatIndex = 0;
                 _chartConfig = _chartConfig.copyWith(
                   lineColor: _examples[_selectedExample].primaryColor,
-                  pointColor:
-                      _examples[_selectedExample]
-                          .primaryColor, // Ensure point color is also updated
+                  pointColor: _examples[_selectedExample].primaryColor,
                   dateFormat: null,
                 );
               });
@@ -619,11 +872,14 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   }
 
   Widget _buildCodePanel() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Column(
       children: [
         // Code Controls
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(isMobile ? 8 : 12),
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
             border: Border(
@@ -645,7 +901,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
               Text(
                 'Live Preview',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: isMobile ? 10 : 11,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -657,15 +913,15 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         // Code Content
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             color: const Color(0xFF1E1E1E),
             child: SingleChildScrollView(
               child: SelectableText(
                 _getCurrentExampleCode(),
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
                   fontFamily: 'monospace',
-                  color: Color(0xFFD4D4D4),
+                  color: const Color(0xFFD4D4D4),
                   height: 1.4,
                 ),
               ),
@@ -781,6 +1037,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
+          runSpacing: 6,
           children:
               colors
                   .map(
@@ -791,7 +1048,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
                         _chartConfig = _chartConfig.copyWith(
                           lineColor: selectedColor,
                         );
-                        _chartKey = UniqueKey(); // Force chart refresh
+                        _chartKey = UniqueKey();
                       }),
                     ),
                   )
@@ -805,6 +1062,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
+          runSpacing: 6,
           children:
               colors
                   .map(
@@ -815,8 +1073,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
                         _chartConfig = _chartConfig.copyWith(
                           pointColor: selectedColor,
                         );
-                        _chartKey =
-                            UniqueKey(); // Force chart refresh when point color changes
+                        _chartKey = UniqueKey();
                       }),
                     ),
                   )
@@ -830,6 +1087,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
+          runSpacing: 6,
           children:
               [
                     AppColors.border,
@@ -847,7 +1105,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
                         _chartConfig = _chartConfig.copyWith(
                           connectionLineColor: selectedColor,
                         );
-                        _chartKey = UniqueKey(); // Force chart refresh
+                        _chartKey = UniqueKey();
                       }),
                     ),
                   )
@@ -861,6 +1119,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
+          runSpacing: 6,
           children:
               backgroundColors
                   .map((color) => _buildBackgroundColorButton(color))
@@ -876,8 +1135,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
       onTap:
           () => setState(() {
             _chartConfig = _chartConfig.copyWith(backgroundColor: color);
-            _chartKey =
-                UniqueKey(); // Force chart refresh when background changes
+            _chartKey = UniqueKey();
           }),
       child: Container(
         width: 24,
@@ -1012,21 +1270,23 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   }
 
   Widget _buildPropertiesSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Clean header
           Container(
             padding: const EdgeInsets.only(bottom: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Properties',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: isMobile ? 20 : 24,
                     fontWeight: FontWeight.w300,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.5,
@@ -1036,7 +1296,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
                 Text(
                   'Configure your Gantt chart components',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isMobile ? 12 : 14,
                     color: AppColors.textSecondary.withOpacity(0.8),
                     fontWeight: FontWeight.w400,
                   ),
@@ -1044,8 +1304,6 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
               ],
             ),
           ),
-
-          // Properties content
           ..._propertySections.map((section) => _buildPropertySection(section)),
         ],
       ),
@@ -1053,6 +1311,9 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   }
 
   Widget _buildPropertySection(GanttPropertySection section) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -1060,8 +1321,8 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         children: [
           Text(
             section.title,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -1091,8 +1352,12 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   }
 
   Widget _buildCodeExamples() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final padding = isMobile ? 16.0 : 24.0;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -1103,47 +1368,49 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         children: [
           Row(
             children: [
-              const Text(
-                'Implementation Examples',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => _copyToClipboard(_codeExamples[0].code),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.copy, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Copy Code',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
+              Expanded(
+                child: Text(
+                  'Implementation Examples',
+                  style: TextStyle(
+                    fontSize: isMobile ? 18 : 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
+              if (!isMobile)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _copyToClipboard(_codeExamples[0].code),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.copy, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Copy Code',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -1161,8 +1428,12 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
   }
 
   Widget _buildApiReference() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final padding = isMobile ? 16.0 : 24.0;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -1171,10 +1442,10 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'API Reference',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -1238,8 +1509,11 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
     String description,
     List<String> properties,
   ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
@@ -1250,8 +1524,8 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         children: [
           Text(
             className,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
               fontFamily: 'monospace',
@@ -1260,8 +1534,8 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
           const SizedBox(height: 4),
           Text(
             description,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               color: AppColors.textSecondary,
             ),
           ),
@@ -1271,8 +1545,8 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 '• $prop',
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: isMobile ? 11 : 12,
                   color: AppColors.textSecondary,
                   fontFamily: 'monospace',
                 ),
@@ -1295,7 +1569,6 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
     });
   }
 
-  // Apply current config colors to the data
   List<GanttData> _getStyledData() {
     return _examples[_selectedExample].data.map((task) {
       return GanttData(
@@ -1303,9 +1576,7 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
         endDate: task.endDate,
         label: task.label,
         description: task.description,
-        color:
-            _chartConfig
-                .pointColor, // Use config point color instead of task color
+        color: _chartConfig.pointColor,
         icon: task.icon,
         tapContent: task.tapContent,
       );
@@ -1322,9 +1593,110 @@ class _GanttChartWidgetState extends State<GanttChartWidget> {
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
+    _showSnackBar('Code copied to clipboard!');
+  }
+
+  void _showTaskDetails(BuildContext context, GanttData data) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (context) => Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(data.icon ?? Icons.task, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          data.label,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (data.description != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      data.description!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.date_range,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${data.startDate.day}/${data.startDate.month} - ${data.endDate.day}/${data.endDate.month}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Close'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      );
+    } else {
+      _showSnackBar('Tapped: ${data.label}');
+    }
+  }
+
+  void _showAnimationComplete() {
+    if (_chartConfig.enableAnimation) {
+      _showSnackBar('${_examples[_selectedExample].title} timeline rendered!');
+    }
+  }
+
+  void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Code copied to clipboard!'),
+        content: Text(message),
+        duration: const Duration(seconds: 2),
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
