@@ -37,7 +37,7 @@ class MaterialChartsDemo extends StatelessWidget {
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.textPrimary,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
