@@ -53,6 +53,33 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
   List<SemicirclePropertySection> _propertySections = [];
   List<SemicircleCodeExample> _codeExamples = [];
 
+  // Responsive helper methods
+  bool _isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 600;
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 600 &&
+      MediaQuery.of(context).size.width < 1200;
+  bool _isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+
+  double _getResponsivePadding(BuildContext context) {
+    if (_isMobile(context)) return 16;
+    if (_isTablet(context)) return 20;
+    return 24;
+  }
+
+  double _getChartSize(BuildContext context) {
+    if (_isMobile(context)) return 200;
+    if (_isTablet(context)) return _showRightPanel ? 220 : 260;
+    return _showRightPanel ? 240 : 300;
+  }
+
+  double _getContainerSize(BuildContext context) {
+    if (_isMobile(context)) return 240;
+    if (_isTablet(context)) return _showRightPanel ? 260 : 300;
+    return _showRightPanel ? 300 : 360;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -69,45 +96,304 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = _isMobile(context);
+
     return Scaffold(
-      body: Row(
+      backgroundColor: AppColors.surface,
+      appBar: isMobile ? _buildMobileAppBar() : null,
+      body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+      bottomSheet:
+          isMobile && _showRightPanel ? _buildMobileBottomSheet() : null,
+    );
+  }
+
+  PreferredSizeWidget _buildMobileAppBar() {
+    return AppBar(
+      title: const Text(
+        'Semicircle Chart',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+      ),
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      actions: [
+        // Toggle customization panel
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _showRightPanel = !_showRightPanel;
+              _showCode = false;
+            });
+          },
+          icon: Icon(
+            _showRightPanel ? Icons.close : Icons.tune,
+            color: AppColors.primary,
+          ),
+        ),
+        // Show code
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _showRightPanel = true;
+              _showCode = true;
+            });
+          },
+          icon: const Icon(Icons.code, color: AppColors.primary),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(_getResponsivePadding(context)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main Content Area
-          Expanded(
-            flex: _showRightPanel ? 7 : 10,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SemicircleWidgets.buildDocumentationHeader(),
-                  const SizedBox(height: 32),
-                  _buildInteractiveDemo(),
-                  const SizedBox(height: 32),
-                  _buildPropertiesSection(),
-                  const SizedBox(height: 32),
-                  _buildCodeExamples(),
-                  const SizedBox(height: 32),
-                  _buildApiReference(),
-                ],
-              ),
+          if (!_isMobile(context)) ...[
+            SemicircleWidgets.buildDocumentationHeader(),
+            const SizedBox(height: 32),
+          ],
+          _buildInteractiveDemo(),
+          const SizedBox(height: 24),
+          if (!_showRightPanel) ...[
+            _buildMobileQuickControls(),
+            const SizedBox(height: 24),
+          ],
+          _buildPropertiesSection(),
+          const SizedBox(height: 24),
+          _buildCodeExamples(),
+          const SizedBox(height: 24),
+          _buildApiReference(),
+          // Add bottom padding for mobile bottom sheet
+          if (_showRightPanel) const SizedBox(height: 300),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Main Content Area
+        Expanded(
+          flex: _showRightPanel ? 7 : 10,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(_getResponsivePadding(context)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SemicircleWidgets.buildDocumentationHeader(),
+                const SizedBox(height: 32),
+                _buildInteractiveDemo(),
+                const SizedBox(height: 32),
+                _buildPropertiesSection(),
+                const SizedBox(height: 32),
+                _buildCodeExamples(),
+                const SizedBox(height: 32),
+                _buildApiReference(),
+              ],
             ),
           ),
+        ),
 
-          // Right Side Panel
-          if (_showRightPanel) ...[
-            Container(width: 1, color: AppColors.border),
-            Expanded(flex: 3, child: _buildRightSidePanel()),
-          ],
+        // Right Side Panel
+        if (_showRightPanel) ...[
+          Container(width: 1, color: AppColors.border),
+          Expanded(flex: 3, child: _buildRightSidePanel()),
         ],
+      ],
+    );
+  }
+
+  Widget _buildMobileBottomSheet() {
+    return Container(
+      height: 300,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.border)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _showCode ? Icons.code : Icons.tune,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _showCode ? 'Live Code' : 'Customize',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                // Toggle
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildPanelToggle(
+                        'Customize',
+                        Icons.tune,
+                        !_showCode,
+                        () => setState(() => _showCode = false),
+                      ),
+                      _buildPanelToggle(
+                        'Code',
+                        Icons.code,
+                        _showCode,
+                        () => setState(() => _showCode = true),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Expanded(
+            child:
+                _showCode
+                    ? _buildCodePanel()
+                    : _buildMobileCustomizationPanel(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileQuickControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMobileActionButton('Customize', Icons.tune, () {
+                  setState(() {
+                    _showRightPanel = true;
+                    _showCode = false;
+                  });
+                }),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMobileActionButton('View Code', Icons.code, () {
+                  setState(() {
+                    _showRightPanel = true;
+                    _showCode = true;
+                  });
+                }),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMobileActionButton(
+                  'Reset',
+                  Icons.refresh,
+                  _resetToDefaults,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileActionButton(
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 20, color: AppColors.primary),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   // Interactive Demo with animation support
   Widget _buildInteractiveDemo() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -118,35 +404,34 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Interactive Demo',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: isMobile ? 18 : 20,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
-              _buildDemoControls(),
+              if (!isMobile) _buildDemoControls(),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             _examples[_selectedExample].description,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: isMobile ? 13 : 14,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           Center(
             child: Container(
-              width: _showRightPanel ? 300 : 360, // Fixed container size
-              height: _showRightPanel ? 300 : 360, // Fixed container size
-              padding: const EdgeInsets.all(32),
+              width: _getContainerSize(context),
+              height: _getContainerSize(context),
+              padding: EdgeInsets.all(isMobile ? 20 : 32),
               decoration: BoxDecoration(
-                color:
-                    _chartConfig.backgroundColor, // Use config background color
+                color: _chartConfig.backgroundColor,
                 gradient:
                     _chartConfig.backgroundColor == Colors.transparent
                         ? RadialGradient(
@@ -156,7 +441,7 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
                           ],
                           radius: 1.5,
                         )
-                        : null, // Only show gradient if background is transparent
+                        : null,
                 borderRadius: BorderRadius.circular(200),
                 border:
                     _chartConfig.backgroundColor != Colors.transparent
@@ -168,11 +453,8 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               child: MaterialChartHollowSemiCircle(
                 key: _chartKey,
                 percentage: _chartConfig.percentage,
-                size: _showRightPanel ? 240 : _chartConfig.size,
-                hollowRadius: _chartConfig.hollowRadius.clamp(
-                  0.1,
-                  0.85,
-                ), // Always clamp for safety
+                size: _getChartSize(context),
+                hollowRadius: _chartConfig.hollowRadius.clamp(0.1, 0.85),
                 style: ChartStyle(
                   activeColor: _chartConfig.activeColor,
                   inactiveColor: _chartConfig.inactiveColor,
@@ -187,16 +469,15 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
                   percentageStyle:
                       _chartConfig.percentageStyle ??
                       TextStyle(
-                        fontSize:
-                            (_showRightPanel ? 240 : _chartConfig.size) / 8,
+                        fontSize: _getChartSize(context) / (isMobile ? 10 : 8),
                         fontWeight: FontWeight.w900,
                         color: _chartConfig.textColor ?? AppColors.textPrimary,
                         letterSpacing: -1,
                       ),
                   legendStyle:
                       _chartConfig.legendStyle ??
-                      const TextStyle(
-                        fontSize: 13,
+                      TextStyle(
+                        fontSize: isMobile ? 11 : 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
                       ),
@@ -228,11 +509,14 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           // Status indicator based on percentage
           Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 16,
+                vertical: isMobile ? 6 : 8,
+              ),
               decoration: BoxDecoration(
                 gradient: _getStatusGradient(_chartConfig.percentage),
                 borderRadius: BorderRadius.circular(12),
@@ -249,14 +533,14 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
                 children: [
                   Icon(
                     _getStatusIcon(_chartConfig.percentage),
-                    size: 16,
+                    size: isMobile ? 14 : 16,
                     color: Colors.white,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     _getStatusText(_chartConfig.percentage),
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: isMobile ? 11 : 12,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -265,8 +549,115 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               ),
             ),
           ),
+          // Mobile example selector
+          if (isMobile) ...[
+            const SizedBox(height: 16),
+            _buildMobileExampleSelector(),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMobileExampleSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chart Examples',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _examples.length,
+            itemBuilder: (context, index) {
+              final example = _examples[index];
+              final isSelected = index == _selectedExample;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedExample = index;
+                    _chartKey = UniqueKey();
+                    _selectedFormatterIndex = 0;
+                    _chartConfig = _chartConfig.copyWith(
+                      percentage: _examples[_selectedExample].percentage,
+                      activeColor: _examples[_selectedExample].activeColor,
+                      inactiveColor: _examples[_selectedExample].inactiveColor,
+                      hollowRadius: 0.6,
+                      percentageFormatter: null,
+                    );
+                  });
+                },
+                child: Container(
+                  width: 120,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Semicircle preview icon
+                      Container(
+                        width: 16,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: example.activeColor.withValues(alpha: 0.8),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        example.title,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${example.percentage.toInt()}%',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color:
+                              isSelected
+                                  ? AppColors.primary.withValues(alpha: 0.8)
+                                  : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -444,14 +835,13 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
                 setState(() {
                   _selectedExample = index;
                   _chartKey = UniqueKey();
-                  _selectedFormatterIndex =
-                      0; // Reset formatter when changing examples
+                  _selectedFormatterIndex = 0;
                   _chartConfig = _chartConfig.copyWith(
                     percentage: _examples[_selectedExample].percentage,
                     activeColor: _examples[_selectedExample].activeColor,
                     inactiveColor: _examples[_selectedExample].inactiveColor,
-                    hollowRadius: 0.6, // Use safe default value
-                    percentageFormatter: null, // Reset to default formatter
+                    hollowRadius: 0.6,
+                    percentageFormatter: null,
                   );
                 });
               },
@@ -483,12 +873,9 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
             const SizedBox(height: 16),
             SemicircleWidgets.buildSlider(
               'Hollow Radius',
-              _chartConfig.hollowRadius.clamp(
-                0.3,
-                0.85,
-              ), // Always clamp the display value
+              _chartConfig.hollowRadius.clamp(0.3, 0.85),
               0.3,
-              0.85, // Reduced max to prevent errors
+              0.85,
               (value) => setState(() {
                 _chartConfig = _chartConfig.copyWith(
                   hollowRadius: value.clamp(0.3, 0.85),
@@ -567,7 +954,281 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
     );
   }
 
+  Widget _buildMobileCustomizationPanel() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Example Selector
+          _buildMobileExampleSection(),
+          const SizedBox(height: 16),
+
+          // Quick Controls
+          _buildMobileQuickControlsSection(),
+          const SizedBox(height: 16),
+
+          // Style Options
+          _buildMobileStyleSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileExampleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chart Examples',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 60,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _examples.length,
+            itemBuilder: (context, index) {
+              final example = _examples[index];
+              final isSelected = index == _selectedExample;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedExample = index;
+                    _chartKey = UniqueKey();
+                    _selectedFormatterIndex = 0;
+                    _chartConfig = _chartConfig.copyWith(
+                      percentage: _examples[_selectedExample].percentage,
+                      activeColor: _examples[_selectedExample].activeColor,
+                      inactiveColor: _examples[_selectedExample].inactiveColor,
+                      hollowRadius: 0.6,
+                      percentageFormatter: null,
+                    );
+                  });
+                },
+                child: Container(
+                  width: 100,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        example.title,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      Container(
+                        width: 12,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: example.activeColor.withValues(alpha: 0.8),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(6),
+                            topRight: Radius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileQuickControlsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Value Settings',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileSlider(
+                'Percentage',
+                _chartConfig.percentage,
+                0.0,
+                100.0,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(percentage: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileSlider(
+                'Hollow Radius',
+                _chartConfig.hollowRadius.clamp(0.3, 0.85),
+                0.3,
+                0.85,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(
+                    hollowRadius: value.clamp(0.3, 0.85),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileStyleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Display Options',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Percentage',
+                _chartConfig.showPercentageText,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(
+                    showPercentageText: value,
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Legend',
+                _chartConfig.showLegend,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(showLegend: value);
+                }),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Animation',
+                _chartConfig.enableAnimation,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(enableAnimation: value);
+                  if (value) _chartKey = UniqueKey();
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(), // Empty container for spacing
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileSlider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$label: ${value.toStringAsFixed(value == value.toInt() ? 0 : 1)}',
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
+        SliderTheme(
+          data: const SliderThemeData(
+            trackHeight: 2,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileToggle(
+    String label,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Transform.scale(
+          scale: 0.7,
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCodePanel() {
+    final isMobile = _isMobile(context);
+
     return Column(
       children: [
         // Code Controls
@@ -594,7 +1255,7 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               Text(
                 'Live Preview',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: isMobile ? 10 : 11,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -606,15 +1267,15 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
         // Code Content
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             color: const Color(0xFF1E1E1E),
             child: SingleChildScrollView(
               child: SelectableText(
                 _getCurrentExampleCode(),
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
                   fontFamily: 'monospace',
-                  color: Color(0xFFD4D4D4),
+                  color: const Color(0xFFD4D4D4),
                   height: 1.4,
                 ),
               ),
@@ -845,7 +1506,6 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
 
   Widget _buildFormatterControls() {
     final formatters = SemicircleDataProvider.getPercentageFormatters();
-    // Track selected formatter by index since function comparison doesn't work reliably
     int selectedFormatterIndex = _selectedFormatterIndex;
 
     return Column(
@@ -925,6 +1585,8 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
   }
 
   Widget _buildPropertiesSection() {
+    final isMobile = _isMobile(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -932,14 +1594,14 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
         children: [
           // Clean header
           Container(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: EdgeInsets.only(bottom: isMobile ? 16 : 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Properties',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: isMobile ? 20 : 24,
                     fontWeight: FontWeight.w300,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.5,
@@ -949,7 +1611,7 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
                 Text(
                   'Configure your semicircle chart components',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     color: AppColors.textSecondary.withOpacity(0.8),
                     fontWeight: FontWeight.w400,
                   ),
@@ -959,7 +1621,125 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
           ),
 
           // Properties content
-          ..._propertySections.map((section) => _buildPropertySection(section)),
+          if (isMobile)
+            // Mobile: Show properties in expandable cards
+            ..._propertySections.map(
+              (section) => _buildMobilePropertySection(section),
+            )
+          else
+            // Desktop: Show all properties
+            ..._propertySections.map(
+              (section) => _buildPropertySection(section),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobilePropertySection(SemicirclePropertySection section) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        title: Text(
+          section.title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        leading: Icon(section.icon, size: 20, color: section.color),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children:
+                  section.properties.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final property = entry.value;
+                    final isLast = index == section.properties.length - 1;
+                    return _buildMobilePropertyRow(property, isLast);
+                  }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobilePropertyRow(SemicirclePropertyInfo property, bool isLast) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border:
+            isLast
+                ? null
+                : Border(
+                  bottom: BorderSide(
+                    color: AppColors.border.withValues(alpha: 0.3),
+                  ),
+                ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                property.name,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              if (property.required) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 3,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Text(
+                    '*',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+              const Spacer(),
+              Text(
+                property.type,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primary,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            property.description,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+              height: 1.3,
+            ),
+          ),
         ],
       ),
     );
@@ -1004,8 +1784,10 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
   }
 
   Widget _buildCodeExamples() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -1016,56 +1798,113 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Implementation Examples',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: isMobile ? 18 : 20,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => _copyToClipboard(_codeExamples[0].code),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.copy, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Copy Code',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+              if (!isMobile)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _copyToClipboard(_codeExamples[0].code),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.copy, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Copy Code',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 16),
-          ..._codeExamples.map(
-            (example) => Column(
-              children: [
-                SemicircleWidgets.buildCodeBlock(example.title, example.code),
-                const SizedBox(height: 16),
-              ],
+          SizedBox(height: isMobile ? 12 : 16),
+          if (isMobile)
+            // Mobile: Show code examples in tabs
+            _buildMobileCodeExamples()
+          else
+            // Desktop: Show all code examples
+            ..._codeExamples.map(
+              (example) => Column(
+                children: [
+                  SemicircleWidgets.buildCodeBlock(example.title, example.code),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileCodeExamples() {
+    return DefaultTabController(
+      length: _codeExamples.length,
+      child: Column(
+        children: [
+          TabBar(
+            isScrollable: true,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primary,
+            labelStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            tabs:
+                _codeExamples
+                    .map((example) => Tab(text: example.title))
+                    .toList(),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: TabBarView(
+              children:
+                  _codeExamples.map((example) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          example.code,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            color: Color(0xFFD4D4D4),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ],
@@ -1074,8 +1913,10 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
   }
 
   Widget _buildApiReference() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -1084,15 +1925,15 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'API Reference',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           _buildClassReference(
             'MaterialChartHollowSemiCircle',
             'Main widget for displaying semicircle charts',
@@ -1103,8 +1944,9 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               'ChartStyle style - Visual styling configuration',
               'VoidCallback? onAnimationComplete - Animation completion callback',
             ],
+            isMobile,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           _buildClassReference(
             'ChartStyle',
             'Configuration for chart styling and behavior',
@@ -1121,6 +1963,7 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
               'String Function(double)? percentageFormatter - Custom percentage format',
               'String Function(String, double)? legendFormatter - Custom legend format',
             ],
+            isMobile,
           ),
         ],
       ),
@@ -1131,9 +1974,10 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
     String className,
     String description,
     List<String> properties,
+    bool isMobile,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
@@ -1144,8 +1988,8 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
         children: [
           Text(
             className,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
               fontFamily: 'monospace',
@@ -1154,19 +1998,19 @@ class _SemicircleChartWidgetState extends State<SemicircleChartWidget> {
           const SizedBox(height: 4),
           Text(
             description,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isMobile ? 8 : 12),
           ...properties.map(
             (prop) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 '• $prop',
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 12,
                   color: AppColors.textSecondary,
                   fontFamily: 'monospace',
                 ),
