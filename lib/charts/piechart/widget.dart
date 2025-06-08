@@ -10,79 +10,130 @@ import 'provider.dart';
 class PieChartWidgets {
   // Documentation Header Widget
   static Widget buildDocumentationHeader() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.1),
-            AppColors.accent.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(alpha: 0.1),
+                AppColors.accent.withValues(alpha: 0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              isMobile
+                  ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryLight],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.pie_chart,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MaterialPieChart',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Interactive pie charts with animations and legends',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                  : Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryLight],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.pie_chart,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'MaterialPieChart',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Interactive pie charts with animations and legends',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.pie_chart,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'MaterialPieChart',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Interactive pie charts with animations and legends',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              SizedBox(height: isMobile ? 12 : 16),
+              Text(
+                'A powerful pie chart widget that transforms your data into beautiful, interactive visualizations. '
+                'Features smooth animations, hover effects, customizable legends, and support for both pie and doughnut chart styles.',
+                style: TextStyle(
+                  fontSize: isMobile ? 13 : 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'A powerful pie chart widget that transforms your data into beautiful, interactive visualizations. '
-            'Features smooth animations, hover effects, customizable legends, and support for both pie and doughnut chart styles.',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -93,44 +144,55 @@ class PieChartWidgets {
     VoidCallback onTap, {
     bool isActive = false,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                isActive
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : AppColors.surface,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isActive ? AppColors.primary : AppColors.border,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isActive ? AppColors.primary : AppColors.textSecondary,
+            onTap: onTap,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 16,
+                vertical: isMobile ? 6 : 8,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isActive ? AppColors.primary : AppColors.textSecondary,
+              decoration: BoxDecoration(
+                color:
+                    isActive
+                        ? AppColors.accent.withValues(alpha: 0.1)
+                        : AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isActive ? AppColors.accent : AppColors.border,
                 ),
               ),
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: isMobile ? 14 : 16,
+                    color:
+                        isActive ? AppColors.accent : AppColors.textSecondary,
+                  ),
+                  SizedBox(width: isMobile ? 4 : 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: isMobile ? 11 : 12,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          isActive ? AppColors.accent : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -140,75 +202,85 @@ class PieChartWidgets {
     int selectedIndex,
     Function(int) onSelect,
   ) {
-    return Column(
-      children:
-          examples.asMap().entries.map((entry) {
-            final index = entry.key;
-            final example = entry.value;
-            final isSelected = index == selectedIndex;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
 
-            return GestureDetector(
-              onTap: () => onSelect(index),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color:
-                      isSelected
-                          ? AppColors.primary.withValues(alpha: 0.1)
-                          : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color:
-                        isSelected
-                            ? AppColors.primary
-                            : AppColors.border.withValues(alpha: 0.3),
+        return Column(
+          children:
+              examples.asMap().entries.map((entry) {
+                final index = entry.key;
+                final example = entry.value;
+                final isSelected = index == selectedIndex;
+
+                return GestureDetector(
+                  onTap: () => onSelect(index),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.all(isMobile ? 6 : 8),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? AppColors.accent.withValues(alpha: 0.1)
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? AppColors.accent
+                                : AppColors.border.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: isMobile ? 10 : 12,
+                          height: isMobile ? 10 : 12,
+                          decoration: BoxDecoration(
+                            color: example.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: isMobile ? 6 : 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                example.title,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 10 : 11,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      isSelected
+                                          ? AppColors.accent
+                                          : AppColors.textPrimary,
+                                ),
+                              ),
+                              if (!isMobile) ...[
+                                Text(
+                                  example.description,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color:
+                                        isSelected
+                                            ? AppColors.accent.withValues(
+                                              alpha: 0.8,
+                                            )
+                                            : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: example.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            example.title,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isSelected
-                                      ? AppColors.primary
-                                      : AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            example.description,
-                            style: TextStyle(
-                              fontSize: 9,
-                              color:
-                                  isSelected
-                                      ? AppColors.primary.withValues(alpha: 0.8)
-                                      : AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
+        );
+      },
     );
   }
 
@@ -220,43 +292,58 @@ class PieChartWidgets {
     double max,
     ValueChanged<double> onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
+            Row(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  value.toStringAsFixed(1),
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            Text(
-              value.toStringAsFixed(1),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-                fontFamily: 'monospace',
+            const SizedBox(height: 4),
+            SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(
+                  enabledThumbRadius: isMobile ? 8 : 6,
+                ),
+                overlayShape: RoundSliderOverlayShape(
+                  overlayRadius: isMobile ? 16 : 12,
+                ),
+                activeTrackColor: AppColors.accent,
+                inactiveTrackColor: AppColors.border,
+                thumbColor: AppColors.accent,
+              ),
+              child: Slider(
+                value: value,
+                min: min,
+                max: max,
+                onChanged: onChanged,
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: const SliderThemeData(
-            trackHeight: 2,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
-            activeTrackColor: AppColors.primary,
-            inactiveTrackColor: AppColors.border,
-            thumbColor: AppColors.primary,
-          ),
-          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -266,23 +353,32 @@ class PieChartWidgets {
     bool value,
     ValueChanged<bool> onChanged,
   ) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const Spacer(),
-        Transform.scale(
-          scale: 0.8,
-          child: Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const Spacer(),
+            Transform.scale(
+              scale: isMobile ? 0.7 : 0.8,
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: AppColors.accent,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -292,33 +388,44 @@ class PieChartWidgets {
     Color selectedColor,
     ValueChanged<Color> onTap,
   ) {
-    final isSelected = color == selectedColor;
-    return GestureDetector(
-      onTap: () => onTap(color),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? AppColors.textPrimary : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: [
-            if (isSelected)
-              BoxShadow(
-                color: color.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+        final size = isMobile ? 20.0 : 24.0;
+
+        final isSelected = color == selectedColor;
+        return GestureDetector(
+          onTap: () => onTap(color),
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? AppColors.textPrimary : Colors.transparent,
+                width: 2,
               ),
-          ],
-        ),
-        child:
-            isSelected
-                ? const Icon(Icons.check, size: 14, color: Colors.white)
-                : null,
-      ),
+              boxShadow: [
+                if (isSelected)
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+              ],
+            ),
+            child:
+                isSelected
+                    ? Icon(
+                      Icons.check,
+                      size: isMobile ? 12 : 14,
+                      color: Colors.white,
+                    )
+                    : null,
+          ),
+        );
+      },
     );
   }
 
@@ -328,44 +435,56 @@ class PieChartWidgets {
     Curve selectedCurve,
     ValueChanged<Curve> onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Animation Curve',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButton<Curve>(
-            value: selectedCurve,
-            isExpanded: true,
-            underline: const SizedBox(),
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Animation Curve',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
             ),
-            items:
-                curves.map((curveOption) {
-                  return DropdownMenuItem<Curve>(
-                    value: curveOption.curve,
-                    child: Text(curveOption.name),
-                  );
-                }).toList(),
-            onChanged: (curve) {
-              if (curve != null) onChanged(curve);
-            },
-          ),
-        ),
-      ],
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 8,
+                vertical: isMobile ? 3 : 4,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: DropdownButton<Curve>(
+                value: selectedCurve,
+                isExpanded: true,
+                underline: const SizedBox(),
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                items:
+                    curves.map((curveOption) {
+                      return DropdownMenuItem<Curve>(
+                        value: curveOption.curve,
+                        child: Text(curveOption.name),
+                      );
+                    }).toList(),
+                onChanged: (curve) {
+                  if (curve != null) onChanged(curve);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -374,93 +493,119 @@ class PieChartWidgets {
     Duration duration,
     ValueChanged<Duration> onChanged,
   ) {
-    final milliseconds = duration.inMilliseconds.toDouble();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+        final milliseconds = duration.inMilliseconds.toDouble();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Animation Duration',
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            Row(
+              children: [
+                Text(
+                  'Animation Duration',
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${milliseconds.round()}ms',
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            Text(
-              '${milliseconds.round()}ms',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-                fontFamily: 'monospace',
+            const SizedBox(height: 4),
+            SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(
+                  enabledThumbRadius: isMobile ? 8 : 6,
+                ),
+                overlayShape: RoundSliderOverlayShape(
+                  overlayRadius: isMobile ? 16 : 12,
+                ),
+                activeTrackColor: AppColors.accent,
+                inactiveTrackColor: AppColors.border,
+                thumbColor: AppColors.accent,
+              ),
+              child: Slider(
+                value: milliseconds,
+                min: 500,
+                max: 5000,
+                divisions: 18,
+                onChanged: (value) {
+                  onChanged(Duration(milliseconds: value.round()));
+                },
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: const SliderThemeData(
-            trackHeight: 2,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
-            activeTrackColor: AppColors.primary,
-            inactiveTrackColor: AppColors.border,
-            thumbColor: AppColors.primary,
-          ),
-          child: Slider(
-            value: milliseconds,
-            min: 500,
-            max: 5000,
-            divisions: 18,
-            onChanged: (value) {
-              onChanged(Duration(milliseconds: value.round()));
-            },
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
   // Animation Preview Button
   static Widget buildAnimationPreviewButton(VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryLight],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+            onTap: onTap,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 10 : 12,
+                vertical: isMobile ? 6 : 8,
               ),
-            ],
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.play_arrow, size: 16, color: Colors.white),
-              SizedBox(width: 6),
-              Text(
-                'Preview Animation',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryLight],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.play_arrow,
+                    size: isMobile ? 14 : 16,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: isMobile ? 4 : 6),
+                  Text(
+                    'Preview Animation',
+                    style: TextStyle(
+                      fontSize: isMobile ? 10 : 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -469,47 +614,59 @@ class PieChartWidgets {
     LabelPosition selectedPosition,
     ValueChanged<LabelPosition> onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Label Position',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButton<LabelPosition>(
-            value: selectedPosition,
-            isExpanded: true,
-            underline: const SizedBox(),
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Label Position',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
             ),
-            items: const [
-              DropdownMenuItem(
-                value: LabelPosition.outside,
-                child: Text('Outside'),
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 8,
+                vertical: isMobile ? 3 : 4,
               ),
-              DropdownMenuItem(
-                value: LabelPosition.inside,
-                child: Text('Inside'),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
               ),
-            ],
-            onChanged: (position) {
-              if (position != null) onChanged(position);
-            },
-          ),
-        ),
-      ],
+              child: DropdownButton<LabelPosition>(
+                value: selectedPosition,
+                isExpanded: true,
+                underline: const SizedBox(),
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: LabelPosition.outside,
+                    child: Text('Outside'),
+                  ),
+                  DropdownMenuItem(
+                    value: LabelPosition.inside,
+                    child: Text('Inside'),
+                  ),
+                ],
+                onChanged: (position) {
+                  if (position != null) onChanged(position);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -517,47 +674,59 @@ class PieChartWidgets {
     PieChartLegendPosition selectedPosition,
     ValueChanged<PieChartLegendPosition> onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Legend Position',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButton<PieChartLegendPosition>(
-            value: selectedPosition,
-            isExpanded: true,
-            underline: const SizedBox(),
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Legend Position',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
             ),
-            items: const [
-              DropdownMenuItem(
-                value: PieChartLegendPosition.right,
-                child: Text('Right'),
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 8,
+                vertical: isMobile ? 3 : 4,
               ),
-              DropdownMenuItem(
-                value: PieChartLegendPosition.bottom,
-                child: Text('Bottom'),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
               ),
-            ],
-            onChanged: (position) {
-              if (position != null) onChanged(position);
-            },
-          ),
-        ),
-      ],
+              child: DropdownButton<PieChartLegendPosition>(
+                value: selectedPosition,
+                isExpanded: true,
+                underline: const SizedBox(),
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: PieChartLegendPosition.right,
+                    child: Text('Right'),
+                  ),
+                  DropdownMenuItem(
+                    value: PieChartLegendPosition.bottom,
+                    child: Text('Bottom'),
+                  ),
+                ],
+                onChanged: (position) {
+                  if (position != null) onChanged(position);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -565,75 +734,87 @@ class PieChartWidgets {
     ChartAlignment selectedAlignment,
     ValueChanged<ChartAlignment> onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Chart Alignment',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButton<ChartAlignment>(
-            value: selectedAlignment,
-            isExpanded: true,
-            underline: const SizedBox(),
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Chart Alignment',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
             ),
-            items: const [
-              DropdownMenuItem(
-                value: ChartAlignment.center,
-                child: Text('Center'),
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 8,
+                vertical: isMobile ? 3 : 4,
               ),
-              DropdownMenuItem(
-                value: ChartAlignment.topLeft,
-                child: Text('Top Left'),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.border),
               ),
-              DropdownMenuItem(
-                value: ChartAlignment.topCenter,
-                child: Text('Top Center'),
+              child: DropdownButton<ChartAlignment>(
+                value: selectedAlignment,
+                isExpanded: true,
+                underline: const SizedBox(),
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: ChartAlignment.center,
+                    child: Text('Center'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.topLeft,
+                    child: Text('Top Left'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.topCenter,
+                    child: Text('Top Center'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.topRight,
+                    child: Text('Top Right'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.centerLeft,
+                    child: Text('Center Left'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.centerRight,
+                    child: Text('Center Right'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.bottomLeft,
+                    child: Text('Bottom Left'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.bottomCenter,
+                    child: Text('Bottom Center'),
+                  ),
+                  DropdownMenuItem(
+                    value: ChartAlignment.bottomRight,
+                    child: Text('Bottom Right'),
+                  ),
+                ],
+                onChanged: (alignment) {
+                  if (alignment != null) onChanged(alignment);
+                },
               ),
-              DropdownMenuItem(
-                value: ChartAlignment.topRight,
-                child: Text('Top Right'),
-              ),
-              DropdownMenuItem(
-                value: ChartAlignment.centerLeft,
-                child: Text('Center Left'),
-              ),
-              DropdownMenuItem(
-                value: ChartAlignment.centerRight,
-                child: Text('Center Right'),
-              ),
-              DropdownMenuItem(
-                value: ChartAlignment.bottomLeft,
-                child: Text('Bottom Left'),
-              ),
-              DropdownMenuItem(
-                value: ChartAlignment.bottomCenter,
-                child: Text('Bottom Center'),
-              ),
-              DropdownMenuItem(
-                value: ChartAlignment.bottomRight,
-                child: Text('Bottom Right'),
-              ),
-            ],
-            onChanged: (alignment) {
-              if (alignment != null) onChanged(alignment);
-            },
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -642,73 +823,86 @@ class PieChartWidgets {
     Color selectedColor,
     ValueChanged<Color> onChanged,
   ) {
-    final backgroundColors = [
-      Colors.transparent,
-      Colors.white,
-      const Color(0xFFF8F9FA),
-      const Color(0xFFF1F3F4),
-      const Color(0xFFE8F0FE),
-      const Color(0xFFFFF3E0),
-      const Color(0xFFE8F5E8),
-      const Color(0xFFFCE4EC),
-    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+        final size = isMobile ? 20.0 : 24.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Background',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          children:
-              backgroundColors.map((color) {
-                final isSelected = color == selectedColor;
-                return GestureDetector(
-                  onTap: () => onChanged(color),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: color == Colors.transparent ? Colors.white : color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? AppColors.textPrimary
-                                : AppColors.border,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow: [
-                        if (isSelected)
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+        final backgroundColors = [
+          Colors.transparent,
+          Colors.white,
+          const Color(0xFFF8F9FA),
+          const Color(0xFFF1F3F4),
+          const Color(0xFFE8F0FE),
+          const Color(0xFFFFF3E0),
+          const Color(0xFFE8F5E8),
+          const Color(0xFFFCE4EC),
+        ];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Background',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              children:
+                  backgroundColors.map((color) {
+                    final isSelected = color == selectedColor;
+                    return GestureDetector(
+                      onTap: () => onChanged(color),
+                      child: Container(
+                        width: size,
+                        height: size,
+                        decoration: BoxDecoration(
+                          color:
+                              color == Colors.transparent
+                                  ? Colors.white
+                                  : color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppColors.textPrimary
+                                    : AppColors.border,
+                            width: isSelected ? 2 : 1,
                           ),
-                      ],
-                    ),
-                    child:
-                        color == Colors.transparent
-                            ? const Icon(
-                              Icons.block,
-                              size: 12,
-                              color: Colors.red,
-                            )
-                            : isSelected
-                            ? const Icon(
-                              Icons.check,
-                              size: 14,
-                              color: Colors.white,
-                            )
-                            : null,
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                          boxShadow: [
+                            if (isSelected)
+                              BoxShadow(
+                                color: AppColors.accent.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                          ],
+                        ),
+                        child:
+                            color == Colors.transparent
+                                ? Icon(
+                                  Icons.block,
+                                  size: isMobile ? 10 : 12,
+                                  color: Colors.red,
+                                )
+                                : isSelected
+                                ? Icon(
+                                  Icons.check,
+                                  size: isMobile ? 12 : 14,
+                                  color: Colors.white,
+                                )
+                                : null,
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -717,209 +911,301 @@ class PieChartWidgets {
     Color selectedColor,
     ValueChanged<Color> onChanged,
   ) {
-    final colors = PieChartDataProvider.getConnectorLineColors();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Line Color',
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          children:
-              colors.map((color) {
-                final isSelected = color == selectedColor;
-                return GestureDetector(
-                  onTap: () => onChanged(color),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? AppColors.textPrimary
-                                : Colors.transparent,
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        if (isSelected)
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+        final size = isMobile ? 20.0 : 24.0;
+
+        final colors = PieChartDataProvider.getConnectorLineColors();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Line Color',
+              style: TextStyle(
+                fontSize: isMobile ? 10 : 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              children:
+                  colors.map((color) {
+                    final isSelected = color == selectedColor;
+                    return GestureDetector(
+                      onTap: () => onChanged(color),
+                      child: Container(
+                        width: size,
+                        height: size,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppColors.textPrimary
+                                    : Colors.transparent,
+                            width: 2,
                           ),
-                      ],
-                    ),
-                    child:
-                        isSelected
-                            ? const Icon(
-                              Icons.check,
-                              size: 14,
-                              color: Colors.white,
-                            )
-                            : null,
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                          boxShadow: [
+                            if (isSelected)
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                          ],
+                        ),
+                        child:
+                            isSelected
+                                ? Icon(
+                                  Icons.check,
+                                  size: isMobile ? 12 : 14,
+                                  color: Colors.white,
+                                )
+                                : null,
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
   // Panel Section Widget
   static Widget buildPanelSection(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: isMobile ? 11 : 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(isMobile ? 10 : 12),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   // Code Block Widget
   static Widget buildCodeBlock(String title, String code) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
-          ),
-          child: SelectableText(
-            code,
-            style: const TextStyle(
-              fontSize: 12,
-              fontFamily: 'monospace',
-              color: Color(0xFFD4D4D4),
-              height: 1.5,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-        ),
-      ],
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.3),
+                ),
+              ),
+              child: SelectableText(
+                code,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 12,
+                  fontFamily: 'monospace',
+                  color: const Color(0xFFD4D4D4),
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   // Property Row Widget
   static Widget buildPropertyRow(PropertyInfo property, bool isLast) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border:
-            isLast
-                ? null
-                : Border(
-                  bottom: BorderSide(
-                    color: AppColors.border.withValues(alpha: 0.3),
-                  ),
-                ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      property.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        fontFamily: 'monospace',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
+          decoration: BoxDecoration(
+            border:
+                isLast
+                    ? null
+                    : Border(
+                      bottom: BorderSide(
+                        color: AppColors.border.withValues(alpha: 0.3),
                       ),
                     ),
-                    if (property.required) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
+          ),
+          child:
+              isMobile
+                  ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            property.name,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          if (property.required) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: const Text(
+                                '*',
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          Text(
+                            property.type,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.accent,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        property.description,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(3),
+                      ),
+                    ],
+                  )
+                  : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  property.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                                if (property.required) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: const Text(
+                                      '*',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              property.type,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.accent,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          '*',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.red,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          property.description,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
                           ),
                         ),
                       ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  property.type,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
-                    fontFamily: 'monospace',
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: Text(
-              property.description,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -943,14 +1229,14 @@ class PieChartWidgets {
           ),
           child: Column(
             children: [
-              Icon(icon, size: 16, color: AppColors.primary),
+              Icon(icon, size: 16, color: AppColors.accent),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: AppColors.accent,
                 ),
               ),
             ],
@@ -974,21 +1260,21 @@ class PieChartWidgets {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: AppColors.accent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+            border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 12, color: AppColors.primary),
+              Icon(icon, size: 12, color: AppColors.accent),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: AppColors.accent,
                 ),
               ),
             ],
@@ -1010,7 +1296,7 @@ class PieChartWidgets {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : Colors.transparent,
+          color: isActive ? AppColors.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -1041,50 +1327,62 @@ class PieChartWidgets {
     double chartRadius,
     ValueChanged<double> onChanged,
   ) {
-    final isMaxFinite = chartRadius == double.maxFinite;
-    final displayValue = isMaxFinite ? 200.0 : chartRadius;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 400;
+        final isMaxFinite = chartRadius == double.maxFinite;
+        final displayValue = isMaxFinite ? 200.0 : chartRadius;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Chart Radius',
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            Row(
+              children: [
+                Text(
+                  'Chart Radius',
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  isMaxFinite ? 'Auto' : displayValue.toStringAsFixed(0),
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            Text(
-              isMaxFinite ? 'Auto' : displayValue.toStringAsFixed(0),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-                fontFamily: 'monospace',
+            const SizedBox(height: 4),
+            SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 2,
+                thumbShape: RoundSliderThumbShape(
+                  enabledThumbRadius: isMobile ? 8 : 6,
+                ),
+                overlayShape: RoundSliderOverlayShape(
+                  overlayRadius: isMobile ? 16 : 12,
+                ),
+                activeTrackColor: AppColors.accent,
+                inactiveTrackColor: AppColors.border,
+                thumbColor: AppColors.accent,
+              ),
+              child: Slider(
+                value: displayValue,
+                min: 50.0,
+                max: 200.0,
+                onChanged: (value) {
+                  onChanged(value == 200.0 ? double.maxFinite : value);
+                },
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 4),
-        SliderTheme(
-          data: const SliderThemeData(
-            trackHeight: 2,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
-            activeTrackColor: AppColors.primary,
-            inactiveTrackColor: AppColors.border,
-            thumbColor: AppColors.primary,
-          ),
-          child: Slider(
-            value: displayValue,
-            min: 50.0,
-            max: 200.0,
-            onChanged: (value) {
-              onChanged(value == 200.0 ? double.maxFinite : value);
-            },
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
