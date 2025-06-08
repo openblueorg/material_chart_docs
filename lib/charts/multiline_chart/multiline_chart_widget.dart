@@ -44,6 +44,39 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
   List<MultiLinePropertySection> _propertySections = [];
   List<MultiLineCodeExample> _codeExamples = [];
 
+  // Responsive helper methods
+  bool _isMobile(BuildContext context) =>
+      MediaQuery.of(context).size.width < 600;
+  bool _isTablet(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 600 &&
+      MediaQuery.of(context).size.width < 1200;
+  bool _isDesktop(BuildContext context) =>
+      MediaQuery.of(context).size.width >= 1200;
+
+  double _getResponsivePadding(BuildContext context) {
+    if (_isMobile(context)) return 16;
+    if (_isTablet(context)) return 20;
+    return 24;
+  }
+
+  double _getChartWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (_isMobile(context)) {
+      return screenWidth - 32; // Account for padding
+    }
+    if (_showRightPanel) {
+      if (_isTablet(context)) return screenWidth * 0.55;
+      return screenWidth * 0.65;
+    }
+    return _isTablet(context) ? screenWidth * 0.8 : screenWidth * 0.75;
+  }
+
+  double _getChartHeight(BuildContext context) {
+    if (_isMobile(context)) return 300;
+    if (_isTablet(context)) return 350;
+    return 400;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,44 +91,303 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // Main Content Area
-          Expanded(
-            flex: _showRightPanel ? 7 : 10,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MultiLineChartWidgets.buildDocumentationHeader(),
-                  const SizedBox(height: 32),
-                  _buildInteractiveDemo(),
-                  const SizedBox(height: 32),
-                  _buildPropertiesSection(),
-                  const SizedBox(height: 32),
-                  _buildCodeExamples(),
-                  const SizedBox(height: 32),
-                  _buildApiReference(),
-                ],
-              ),
-            ),
-          ),
+    final isMobile = _isMobile(context);
 
-          // Right Side Panel
-          if (_showRightPanel) ...[
-            Container(width: 1, color: AppColors.border),
-            Expanded(flex: 3, child: _buildRightSidePanel()),
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: isMobile ? _buildMobileAppBar() : null,
+      body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+      bottomSheet:
+          isMobile && _showRightPanel ? _buildMobileBottomSheet() : null,
+    );
+  }
+
+  PreferredSizeWidget _buildMobileAppBar() {
+    return AppBar(
+      title: const Text(
+        'Multi-Line Chart',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+      ),
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      actions: [
+        // Toggle customization panel
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _showRightPanel = !_showRightPanel;
+              _showCode = false;
+            });
+          },
+          icon: Icon(
+            _showRightPanel ? Icons.close : Icons.tune,
+            color: AppColors.primary,
+          ),
+        ),
+        // Show code
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _showRightPanel = true;
+              _showCode = true;
+            });
+          },
+          icon: const Icon(Icons.code, color: AppColors.primary),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(_getResponsivePadding(context)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isMobile(context)) ...[
+            MultiLineChartWidgets.buildDocumentationHeader(),
+            const SizedBox(height: 32),
           ],
+          _buildInteractiveDemo(),
+          const SizedBox(height: 24),
+          if (!_showRightPanel) ...[
+            _buildMobileQuickControls(),
+            const SizedBox(height: 24),
+          ],
+          _buildPropertiesSection(),
+          const SizedBox(height: 24),
+          _buildCodeExamples(),
+          const SizedBox(height: 24),
+          _buildApiReference(),
+          // Add bottom padding for mobile bottom sheet
+          if (_showRightPanel) const SizedBox(height: 300),
         ],
       ),
     );
   }
 
-  Widget _buildInteractiveDemo() {
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Main Content Area
+        Expanded(
+          flex: _showRightPanel ? 7 : 10,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(_getResponsivePadding(context)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MultiLineChartWidgets.buildDocumentationHeader(),
+                const SizedBox(height: 32),
+                _buildInteractiveDemo(),
+                const SizedBox(height: 32),
+                _buildPropertiesSection(),
+                const SizedBox(height: 32),
+                _buildCodeExamples(),
+                const SizedBox(height: 32),
+                _buildApiReference(),
+              ],
+            ),
+          ),
+        ),
+
+        // Right Side Panel
+        if (_showRightPanel) ...[
+          Container(width: 1, color: AppColors.border),
+          Expanded(flex: 3, child: _buildRightSidePanel()),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMobileBottomSheet() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      height: 300,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.border)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _showCode ? Icons.code : Icons.tune,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _showCode ? 'Live Code' : 'Customize',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                // Toggle
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildPanelToggle(
+                        'Customize',
+                        Icons.tune,
+                        !_showCode,
+                        () => setState(() => _showCode = false),
+                      ),
+                      _buildPanelToggle(
+                        'Code',
+                        Icons.code,
+                        _showCode,
+                        () => setState(() => _showCode = true),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Expanded(
+            child:
+                _showCode
+                    ? _buildCodePanel()
+                    : _buildMobileCustomizationPanel(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileQuickControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Quick Actions',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMobileActionButton('Customize', Icons.tune, () {
+                  setState(() {
+                    _showRightPanel = true;
+                    _showCode = false;
+                  });
+                }),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMobileActionButton('View Code', Icons.code, () {
+                  setState(() {
+                    _showRightPanel = true;
+                    _showCode = true;
+                  });
+                }),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMobileActionButton(
+                  'Reset',
+                  Icons.refresh,
+                  _resetToDefaults,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileActionButton(
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 20, color: AppColors.primary),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInteractiveDemo() {
+    final isMobile = _isMobile(context);
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -106,29 +398,29 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Interactive Demo',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: isMobile ? 18 : 20,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
-              _buildDemoControls(),
+              if (!isMobile) _buildDemoControls(),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             _examples[_selectedExample].description,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: isMobile ? 13 : 14,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           Container(
-            height: 400,
+            height: _getChartHeight(context),
             decoration: BoxDecoration(
               color:
                   _chartConfig.backgroundColor == Colors.transparent
@@ -145,8 +437,8 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
                 series: _applyConfigToSeries(
                   _examples[_selectedExample].series,
                 ),
-                width: _showRightPanel ? 500 : 700,
-                height: 350,
+                width: _getChartWidth(context),
+                height: _getChartHeight(context) - 40,
                 style: MultiLineChartStyle(
                   colors: _chartConfig.colors,
                   backgroundColor: _chartConfig.backgroundColor,
@@ -161,14 +453,14 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
                   forceYAxisFromZero: _chartConfig.forceYAxisFromZero,
                   gridLineWidth: _chartConfig.gridLineWidth,
                   horizontalGridLines: _chartConfig.horizontalGridLines,
-                  labelStyle: const TextStyle(
+                  labelStyle: TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12,
+                    fontSize: isMobile ? 10 : 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  legendStyle: const TextStyle(
+                  legendStyle: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 13,
+                    fontSize: isMobile ? 11 : 13,
                     fontWeight: FontWeight.w600,
                   ),
                   animation: ChartAnimation(
@@ -192,7 +484,7 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
                     backgroundColor: _chartConfig.tooltipBackgroundColor,
                     textStyle: TextStyle(
                       color: _chartConfig.tooltipTextColor,
-                      fontSize: 12,
+                      fontSize: isMobile ? 10 : 12,
                       fontWeight: FontWeight.w500,
                     ),
                     padding: _chartConfig.tooltipPadding,
@@ -226,8 +518,109 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
               ),
             ),
           ),
+          // Mobile example selector
+          if (isMobile) ...[
+            const SizedBox(height: 16),
+            _buildMobileExampleSelector(),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMobileExampleSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chart Examples',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _examples.length,
+            itemBuilder: (context, index) {
+              final example = _examples[index];
+              final isSelected = index == _selectedExample;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedExample = index;
+                    _chartKey = UniqueKey();
+                  });
+                },
+                child: Container(
+                  width: 120,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Show gradient color preview for series
+                      Container(
+                        height: 16,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.accent,
+                              AppColors.primaryLight,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        example.title,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${example.series.length} series',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color:
+                              isSelected
+                                  ? AppColors.primary.withValues(alpha: 0.8)
+                                  : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -603,7 +996,276 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
     );
   }
 
+  Widget _buildMobileCustomizationPanel() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Example Selector
+          _buildMobileExampleSection(),
+          const SizedBox(height: 16),
+
+          // Quick Controls
+          _buildMobileQuickControlsSection(),
+          const SizedBox(height: 16),
+
+          // Style Options
+          _buildMobileStyleSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileExampleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chart Examples',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 60,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _examples.length,
+            itemBuilder: (context, index) {
+              final example = _examples[index];
+              final isSelected = index == _selectedExample;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedExample = index;
+                    _chartKey = UniqueKey();
+                  });
+                },
+                child: Container(
+                  width: 100,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        example.title,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.accent,
+                              AppColors.primaryLight,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileQuickControlsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Series & Lines',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileSlider(
+                'Line Width',
+                _chartConfig.defaultLineWidth,
+                1.0,
+                8.0,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(defaultLineWidth: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileSlider(
+                'Point Size',
+                _chartConfig.defaultPointSize,
+                2.0,
+                12.0,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(defaultPointSize: value);
+                }),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileStyleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Display Options',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Points',
+                _chartConfig.showPoints,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(showPoints: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Grid',
+                _chartConfig.showGrid,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(showGrid: value);
+                }),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Smooth Lines',
+                _chartConfig.smoothLines,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(smoothLines: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Legend',
+                _chartConfig.showLegend,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(showLegend: value);
+                }),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileSlider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$label: ${value.toStringAsFixed(1)}',
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
+        SliderTheme(
+          data: const SliderThemeData(
+            trackHeight: 2,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileToggle(
+    String label,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Transform.scale(
+          scale: 0.7,
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCodePanel() {
+    final isMobile = _isMobile(context);
+
     return Column(
       children: [
         // Code Controls
@@ -630,7 +1292,7 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
               Text(
                 'Live Preview',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: isMobile ? 10 : 11,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -642,15 +1304,15 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
         // Code Content
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             color: const Color(0xFF1E1E1E),
             child: SingleChildScrollView(
               child: SelectableText(
                 _getCurrentExampleCode(),
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 11,
                   fontFamily: 'monospace',
-                  color: Color(0xFFD4D4D4),
+                  color: const Color(0xFFD4D4D4),
                   height: 1.4,
                 ),
               ),
@@ -796,20 +1458,22 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
   }
 
   Widget _buildPropertiesSection() {
+    final isMobile = _isMobile(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: EdgeInsets.only(bottom: isMobile ? 16 : 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Properties',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: isMobile ? 20 : 24,
                     fontWeight: FontWeight.w300,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.5,
@@ -819,7 +1483,7 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
                 Text(
                   'Configure your multi-line chart components',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isMobile ? 13 : 14,
                     color: AppColors.textSecondary.withOpacity(0.8),
                     fontWeight: FontWeight.w400,
                   ),
@@ -827,7 +1491,125 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
               ],
             ),
           ),
-          ..._propertySections.map((section) => _buildPropertySection(section)),
+          if (isMobile)
+            // Mobile: Show properties in expandable cards
+            ..._propertySections.map(
+              (section) => _buildMobilePropertySection(section),
+            )
+          else
+            // Desktop: Show all properties
+            ..._propertySections.map(
+              (section) => _buildPropertySection(section),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobilePropertySection(MultiLinePropertySection section) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        title: Text(
+          section.title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        leading: Icon(section.icon, size: 20, color: section.color),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children:
+                  section.properties.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final property = entry.value;
+                    final isLast = index == section.properties.length - 1;
+                    return _buildMobilePropertyRow(property, isLast);
+                  }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobilePropertyRow(MultiLinePropertyInfo property, bool isLast) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border:
+            isLast
+                ? null
+                : Border(
+                  bottom: BorderSide(
+                    color: AppColors.border.withValues(alpha: 0.3),
+                  ),
+                ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                property.name,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              if (property.required) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 3,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Text(
+                    '*',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+              const Spacer(),
+              Text(
+                property.type,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primary,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            property.description,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+              height: 1.3,
+            ),
+          ),
         ],
       ),
     );
@@ -875,8 +1657,10 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
   }
 
   Widget _buildCodeExamples() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -887,59 +1671,116 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Implementation Examples',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: isMobile ? 18 : 20,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => _copyToClipboard(_codeExamples[0].code),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.copy, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Copy Code',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+              if (!isMobile)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _copyToClipboard(_codeExamples[0].code),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.copy, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Copy Code',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 16),
-          ..._codeExamples.map(
-            (example) => Column(
-              children: [
-                MultiLineChartWidgets.buildCodeBlock(
-                  example.title,
-                  example.code,
-                ),
-                const SizedBox(height: 16),
-              ],
+          SizedBox(height: isMobile ? 12 : 16),
+          if (isMobile)
+            // Mobile: Show code examples in tabs
+            _buildMobileCodeExamples()
+          else
+            // Desktop: Show all code examples
+            ..._codeExamples.map(
+              (example) => Column(
+                children: [
+                  MultiLineChartWidgets.buildCodeBlock(
+                    example.title,
+                    example.code,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileCodeExamples() {
+    return DefaultTabController(
+      length: _codeExamples.length,
+      child: Column(
+        children: [
+          TabBar(
+            isScrollable: true,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primary,
+            labelStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            tabs:
+                _codeExamples
+                    .map((example) => Tab(text: example.title))
+                    .toList(),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: TabBarView(
+              children:
+                  _codeExamples.map((example) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          example.code,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            color: Color(0xFFD4D4D4),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ],
@@ -948,8 +1789,10 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
   }
 
   Widget _buildApiReference() {
+    final isMobile = _isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -958,15 +1801,15 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'API Reference',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           _buildClassReference(
             'ChartSeries',
             'Model class for chart data series',
@@ -979,8 +1822,9 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
               'double? lineWidth - Line thickness',
               'double? pointSize - Point size',
             ],
+            isMobile,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           _buildClassReference(
             'MultiLineChartStyle',
             'Configuration for chart styling',
@@ -1001,13 +1845,19 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
               'CrosshairConfig? crosshair - Crosshair configuration',
               'bool forceYAxisFromZero - Force Y-axis from zero (default: false)',
             ],
+            isMobile,
           ),
-          const SizedBox(height: 16),
-          _buildClassReference('ChartAnimation', 'Animation configuration', [
-            'Duration duration - Animation duration (default: 1000ms)',
-            'Curve curve - Animation curve (default: Curves.easeInOut)',
-            'bool enabled - Enable animations (default: true)',
-          ]),
+          SizedBox(height: isMobile ? 12 : 16),
+          _buildClassReference(
+            'ChartAnimation',
+            'Animation configuration',
+            [
+              'Duration duration - Animation duration (default: 1000ms)',
+              'Curve curve - Animation curve (default: Curves.easeInOut)',
+              'bool enabled - Enable animations (default: true)',
+            ],
+            isMobile,
+          ),
         ],
       ),
     );
@@ -1017,9 +1867,10 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
     String className,
     String description,
     List<String> properties,
+    bool isMobile,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
@@ -1030,8 +1881,8 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
         children: [
           Text(
             className,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
               fontFamily: 'monospace',
@@ -1040,19 +1891,19 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
           const SizedBox(height: 4),
           Text(
             description,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isMobile ? 8 : 12),
           ...properties.map(
             (prop) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 '• $prop',
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: isMobile ? 10 : 12,
                   color: AppColors.textSecondary,
                   fontFamily: 'monospace',
                 ),
