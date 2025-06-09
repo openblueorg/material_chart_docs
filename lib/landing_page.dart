@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'charts/constants.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:html' as html;
 
 class LandingPage extends StatefulWidget {
   final VoidCallback onExploreCharts;
@@ -383,8 +385,8 @@ class _LandingPageState extends State<LandingPage>
                                       ),
                                       const SizedBox(height: 16),
                                       _buildSecondaryButton(
-                                        'View Docs',
-                                        Icons.description_outlined,
+                                        'Support ❤️',
+                                        Icons.attach_money_rounded,
                                         () => _showDocumentation(),
                                         isFullWidth: true,
                                       ),
@@ -400,8 +402,8 @@ class _LandingPageState extends State<LandingPage>
                                       ),
                                       const SizedBox(width: 20),
                                       _buildSecondaryButton(
-                                        'View Docs',
-                                        Icons.description_outlined,
+                                        'Support ❤️',
+                                        Icons.attach_money_rounded,
                                         () => _showDocumentation(),
                                       ),
                                     ],
@@ -1292,12 +1294,7 @@ class _LandingPageState extends State<LandingPage>
   }
 
   void _showDocumentation() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Documentation coming soon!'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+    html.window.open('https://buymeacoffee.com/vishnudas', '_blank');
   }
 }
 
