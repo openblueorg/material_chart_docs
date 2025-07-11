@@ -12,7 +12,7 @@ import 'widget.dart';
 ///
 /// A highly customizable animated line chart widget that displays data points
 /// connected by smooth lines. Perfect for visualizing trends, progress, and
-/// time-series data with beautiful animations and styling options.
+/// time-series data with beautiful animations, interactive tooltips, and curved styling options.
 ///
 /// ## Features
 /// - ✨ Smooth animations with customizable duration and curves
@@ -21,6 +21,9 @@ import 'widget.dart';
 /// - 🏷️ Automatic label positioning
 /// - 📱 Responsive design with configurable padding
 /// - 🎯 Callback support for animation completion
+/// - 📈 Curved line support with adjustable intensity
+/// - 💬 Interactive tooltips with hover effects
+/// - 🎪 Customizable hover line styles (solid, dashed, dotted)
 ///
 /// ## Use Cases
 /// - Sales trends over time
@@ -42,7 +45,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
   bool _showCode = false;
   Key _chartKey = UniqueKey();
 
-  // Chart Configuration
+  // Chart Configuration - ENHANCED WITH NEW PROPERTIES
   ChartConfig _chartConfig = const ChartConfig();
 
   // Data Sources
@@ -389,7 +392,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     );
   }
 
-  // ENHANCED: Interactive Demo with animation support
+  // ENHANCED: Interactive Demo with NEW FEATURES
   Widget _buildInteractiveDemo() {
     final isMobile = _isMobile(context);
 
@@ -456,15 +459,41 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                     fontSize: isMobile ? 10 : 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  // Animation properties from config
+                  // Animation properties
                   animationDuration:
                       _chartConfig.enableAnimation
                           ? _chartConfig.animationDuration
                           : Duration.zero,
                   animationCurve: _chartConfig.animationCurve,
+
+                  // NEW: Curved line properties
+                  useCurvedLines: _chartConfig.useCurvedLines,
+                  curveIntensity: _chartConfig.curveIntensity,
+                  roundedPoints: _chartConfig.roundedPoints,
+
+                  // NEW: Tooltip styling
+                  showTooltips: _chartConfig.showTooltips,
+                  tooltipStyle: TooltipStyle(
+                    backgroundColor: _chartConfig.tooltipBackgroundColor,
+                    borderColor: _chartConfig.tooltipBorderColor,
+                    borderRadius: _chartConfig.tooltipBorderRadius,
+                    textStyle: TextStyle(
+                      color: _chartConfig.tooltipTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                  ),
+
+                  // NEW: Hover line properties
+                  verticalLineColor: _chartConfig.verticalLineColor,
+                  verticalLineWidth: _chartConfig.verticalLineWidth,
+                  verticalLineStyle: _chartConfig.verticalLineStyle,
+                  verticalLineOpacity: _chartConfig.verticalLineOpacity,
                 ),
                 showPoints: _chartConfig.showPoints,
                 showGrid: _chartConfig.showGrid,
+                showTooltips: _chartConfig.showTooltips,
                 padding: EdgeInsets.all(isMobile ? 16 : 20),
                 onAnimationComplete: () {
                   // Animation completion feedback
@@ -728,7 +757,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     );
   }
 
-  // ENHANCED: Customization Panel with Animation Controls
+  // ENHANCED: Customization Panel with NEW CONTROLS
   Widget _buildCustomizationPanel() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -787,6 +816,70 @@ class _LineChartWidgetState extends State<LineChartWidget> {
             ChartWidgets.buildAnimationPreviewButton(() {
               setState(() => _chartKey = UniqueKey());
             }),
+          ]),
+          const SizedBox(height: 20),
+
+          // NEW: Curved Lines Section
+          ChartWidgets.buildPanelSection('Curved Lines & Points', [
+            ChartWidgets.buildCurvedLinesSection(
+              _chartConfig.useCurvedLines,
+              _chartConfig.curveIntensity,
+              _chartConfig.roundedPoints,
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(useCurvedLines: value);
+              }),
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(curveIntensity: value);
+              }),
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(roundedPoints: value);
+              }),
+            ),
+          ]),
+          const SizedBox(height: 20),
+
+          // NEW: Tooltips & Hover Section
+          ChartWidgets.buildPanelSection('Tooltips & Hover', [
+            ChartWidgets.buildTooltipsSection(
+              _chartConfig.showTooltips,
+              _chartConfig.tooltipBackgroundColor,
+              _chartConfig.tooltipBorderColor,
+              _chartConfig.tooltipBorderRadius,
+              _chartConfig.verticalLineColor,
+              _chartConfig.verticalLineWidth,
+              _chartConfig.verticalLineStyle,
+              _chartConfig.verticalLineOpacity,
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(showTooltips: value);
+              }),
+              (color) => setState(() {
+                _chartConfig = _chartConfig.copyWith(
+                  tooltipBackgroundColor: color,
+                );
+              }),
+              (color) => setState(() {
+                _chartConfig = _chartConfig.copyWith(tooltipBorderColor: color);
+              }),
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(
+                  tooltipBorderRadius: value,
+                );
+              }),
+              (color) => setState(() {
+                _chartConfig = _chartConfig.copyWith(verticalLineColor: color);
+              }),
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(verticalLineWidth: value);
+              }),
+              (style) => setState(() {
+                _chartConfig = _chartConfig.copyWith(verticalLineStyle: style);
+              }),
+              (value) => setState(() {
+                _chartConfig = _chartConfig.copyWith(
+                  verticalLineOpacity: value,
+                );
+              }),
+            ),
           ]),
           const SizedBox(height: 20),
 
@@ -862,6 +955,14 @@ class _LineChartWidgetState extends State<LineChartWidget> {
 
           // Quick Controls
           _buildMobileQuickControlsSection(),
+          const SizedBox(height: 16),
+
+          // NEW: Curved Lines Toggle
+          _buildMobileCurvedLinesSection(),
+          const SizedBox(height: 16),
+
+          // NEW: Tooltips Toggle
+          _buildMobileTooltipsSection(),
           const SizedBox(height: 16),
 
           // Style Options
@@ -995,6 +1096,94 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                   _chartConfig = _chartConfig.copyWith(pointRadius: value);
                 }),
               ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // NEW: Mobile Curved Lines Section
+  Widget _buildMobileCurvedLinesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Curved Lines',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Curved Lines',
+                _chartConfig.useCurvedLines,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(useCurvedLines: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMobileToggle(
+                'Rounded Points',
+                _chartConfig.roundedPoints,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(roundedPoints: value);
+                }),
+              ),
+            ),
+          ],
+        ),
+        if (_chartConfig.useCurvedLines) ...[
+          const SizedBox(height: 8),
+          _buildMobileSlider(
+            'Curve Intensity',
+            _chartConfig.curveIntensity,
+            0.0,
+            1.0,
+            (value) => setState(() {
+              _chartConfig = _chartConfig.copyWith(curveIntensity: value);
+            }),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // NEW: Mobile Tooltips Section
+  Widget _buildMobileTooltipsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tooltips & Hover',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMobileToggle(
+                'Show Tooltips',
+                _chartConfig.showTooltips,
+                (value) => setState(() {
+                  _chartConfig = _chartConfig.copyWith(showTooltips: value);
+                }),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(), // Empty space for symmetry
             ),
           ],
         ),
@@ -1399,7 +1588,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Configure your chart components',
+                  'Configure your chart components with curved lines & tooltips',
                   style: TextStyle(
                     fontSize: isMobile ? 13 : 14,
                     color: AppColors.textSecondary.withOpacity(0.8),
@@ -1736,7 +1925,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           SizedBox(height: isMobile ? 12 : 16),
           _buildClassReference(
             'LineChartStyle',
-            'Configuration for chart styling',
+            'Configuration for chart styling with curves & tooltips',
             [
               'Color lineColor - Line color (default: Colors.blue)',
               'Color pointColor - Point color (default: Colors.blue)',
@@ -1745,8 +1934,28 @@ class _LineChartWidgetState extends State<LineChartWidget> {
               'TextStyle? labelStyle - Custom label styling',
               'double strokeWidth - Line thickness (default: 2.0)',
               'double pointRadius - Point size (default: 4.0)',
+              'bool useCurvedLines - Enable curved line smoothing (default: false)',
+              'double curveIntensity - Curve smoothing intensity (default: 0.3)',
+              'bool roundedPoints - Use rounded line caps (default: true)',
+              'bool showTooltips - Show hover tooltips (default: true)',
+              'TooltipStyle tooltipStyle - Tooltip styling configuration',
+              'Color verticalLineColor - Hover line color (default: Colors.blue)',
+              'LineStyle verticalLineStyle - Hover line style (default: solid)',
               'Duration animationDuration - Animation length (default: 1500ms)',
               'Curve animationCurve - Animation curve (default: Curves.easeInOut)',
+            ],
+            isMobile,
+          ),
+          SizedBox(height: isMobile ? 12 : 16),
+          _buildClassReference(
+            'TooltipStyle',
+            'Tooltip appearance configuration',
+            [
+              'Color backgroundColor - Tooltip background (default: Colors.white)',
+              'Color borderColor - Tooltip border (default: Colors.grey)',
+              'double borderRadius - Corner radius (default: 5.0)',
+              'TextStyle textStyle - Text styling',
+              'EdgeInsets padding - Internal spacing (default: 8px)',
             ],
             isMobile,
           ),

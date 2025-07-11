@@ -1,6 +1,7 @@
 // widgets/chart_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:chat_test_01/material_charts/material_charts.dart';
 import '../constants.dart';
 import 'models.dart';
 
@@ -53,7 +54,7 @@ class ChartWidgets {
                       ),
                     ),
                     Text(
-                      'Beautiful animated line charts for Flutter',
+                      'Beautiful animated line charts with tooltips & curved lines',
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.textSecondary,
@@ -67,8 +68,8 @@ class ChartWidgets {
           ),
           const SizedBox(height: 16),
           const Text(
-            'A highly customizable line chart widget that brings your data to life with smooth animations, '
-            'elegant styling, and intuitive interactions. Perfect for dashboards, analytics, and data visualization.',
+            'A highly customizable line chart widget featuring smooth curved lines, interactive tooltips, '
+            'elegant animations, and responsive hover effects. Perfect for dashboards, analytics, and data visualization.',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
@@ -316,7 +317,7 @@ class ChartWidgets {
     );
   }
 
-  // NEW: Animation Curve Dropdown
+  // Animation Curve Dropdown
   static Widget buildAnimationCurveDropdown(
     List<CurveOption> curves,
     Curve selectedCurve,
@@ -363,7 +364,54 @@ class ChartWidgets {
     );
   }
 
-  // NEW: Animation Duration Slider
+  // NEW: Line Style Dropdown
+  static Widget buildLineStyleDropdown(
+    List<LineStyleOption> styles,
+    LineStyle selectedStyle,
+    ValueChanged<LineStyle> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Hover Line Style',
+          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: DropdownButton<LineStyle>(
+            value: selectedStyle,
+            isExpanded: true,
+            underline: const SizedBox(),
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+            items:
+                styles.map((styleOption) {
+                  return DropdownMenuItem<LineStyle>(
+                    value: styleOption.style,
+                    child: Text(styleOption.name),
+                  );
+                }).toList(),
+            onChanged: (style) {
+              if (style != null) onChanged(style);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Animation Duration Slider
   static Widget buildAnimationDurationSlider(
     Duration duration,
     ValueChanged<Duration> onChanged,
@@ -414,7 +462,7 @@ class ChartWidgets {
     );
   }
 
-  // NEW: Animation Preview Button
+  // Animation Preview Button
   static Widget buildAnimationPreviewButton(VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
@@ -454,7 +502,7 @@ class ChartWidgets {
     );
   }
 
-  // NEW: Background Color Picker
+  // Background Color Picker
   static Widget buildBackgroundColorPicker(
     Color selectedColor,
     ValueChanged<Color> onChanged,
@@ -525,6 +573,140 @@ class ChartWidgets {
                 );
               }).toList(),
         ),
+      ],
+    );
+  }
+
+  // NEW: Curved Lines Controls Section
+  static Widget buildCurvedLinesSection(
+    bool useCurvedLines,
+    double curveIntensity,
+    bool roundedPoints,
+    Function(bool) onUseCurvedLinesChanged,
+    Function(double) onCurveIntensityChanged,
+    Function(bool) onRoundedPointsChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildToggle('Curved Lines', useCurvedLines, onUseCurvedLinesChanged),
+        if (useCurvedLines) ...[
+          const SizedBox(height: 16),
+          buildSlider(
+            'Curve Intensity',
+            curveIntensity,
+            0.0,
+            1.0,
+            onCurveIntensityChanged,
+          ),
+        ],
+        const SizedBox(height: 16),
+        buildToggle('Rounded Points', roundedPoints, onRoundedPointsChanged),
+      ],
+    );
+  }
+
+  // NEW: Tooltips Controls Section
+  static Widget buildTooltipsSection(
+    bool showTooltips,
+    Color tooltipBackgroundColor,
+    Color tooltipBorderColor,
+    double tooltipBorderRadius,
+    Color verticalLineColor,
+    double verticalLineWidth,
+    LineStyle verticalLineStyle,
+    double verticalLineOpacity,
+    Function(bool) onShowTooltipsChanged,
+    Function(Color) onTooltipBackgroundColorChanged,
+    Function(Color) onTooltipBorderColorChanged,
+    Function(double) onTooltipBorderRadiusChanged,
+    Function(Color) onVerticalLineColorChanged,
+    Function(double) onVerticalLineWidthChanged,
+    Function(LineStyle) onVerticalLineStyleChanged,
+    Function(double) onVerticalLineOpacityChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildToggle('Show Tooltips', showTooltips, onShowTooltipsChanged),
+        if (showTooltips) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Tooltip Colors',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Text('Background:', style: TextStyle(fontSize: 10)),
+              const SizedBox(width: 8),
+              buildColorButton(
+                tooltipBackgroundColor,
+                tooltipBackgroundColor,
+                onTooltipBackgroundColorChanged,
+              ),
+              const SizedBox(width: 16),
+              const Text('Border:', style: TextStyle(fontSize: 10)),
+              const SizedBox(width: 8),
+              buildColorButton(
+                tooltipBorderColor,
+                tooltipBorderColor,
+                onTooltipBorderColorChanged,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          buildSlider(
+            'Border Radius',
+            tooltipBorderRadius,
+            0.0,
+            20.0,
+            onTooltipBorderRadiusChanged,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Hover Line',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          buildLineStyleDropdown(
+            [
+              LineStyleOption(name: 'Solid', style: LineStyle.solid),
+              LineStyleOption(name: 'Dashed', style: LineStyle.dashed),
+              LineStyleOption(name: 'Dotted', style: LineStyle.dotted),
+            ],
+            verticalLineStyle,
+            onVerticalLineStyleChanged,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: buildSlider(
+                  'Line Width',
+                  verticalLineWidth,
+                  0.5,
+                  5.0,
+                  onVerticalLineWidthChanged,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: buildSlider(
+                  'Opacity',
+                  verticalLineOpacity,
+                  0.1,
+                  1.0,
+                  onVerticalLineOpacityChanged,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
