@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/area_chart/models.dart';
+import 'models.dart';
 
 /// Custom painter for rendering an area chart.
 /// This painter is responsible for drawing the chart grid, area fills, lines,

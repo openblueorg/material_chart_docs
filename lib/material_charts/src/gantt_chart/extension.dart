@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/gantt_chart/models.dart';
+import 'models.dart';
 
 /// Extension methods for [List<GanttData>] to enhance functionality related
 /// to Gantt chart data manipulation.

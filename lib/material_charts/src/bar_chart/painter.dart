@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/bar_chart/models.dart';
+import 'models.dart';
 
 /// Custom painter for rendering a bar chart.
 ///

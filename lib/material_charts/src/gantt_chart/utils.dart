@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/gantt_chart/models.dart';
+import 'models.dart';
 
 /// A utility class for handling date-related operations for Gantt charts.
 class GanttDateUtils {

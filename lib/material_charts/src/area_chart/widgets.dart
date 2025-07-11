@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/area_chart/models.dart';
-import 'package:chat_test_01/material_charts/src/area_chart/painter.dart';
+import 'models.dart';
+import 'painter.dart';
 
 /// The main area chart widget
 class MaterialAreaChart extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:chat_test_01/material_charts/src/gantt_chart/models.dart';
+import 'models.dart';
 
 /// Custom painter for rendering a Gantt chart.
 ///

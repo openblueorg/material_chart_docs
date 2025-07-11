@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/bar_chart/models.dart';
-import 'package:chat_test_01/material_charts/src/bar_chart/painter.dart';
+import 'models.dart';
+import 'painter.dart';
 
 /// A stateful widget that represents a material design bar chart.
 ///

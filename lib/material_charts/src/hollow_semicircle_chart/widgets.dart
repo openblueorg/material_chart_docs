@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:chat_test_01/material_charts/src/hollow_semicircle_chart/models.dart';
-import 'package:chat_test_01/material_charts/src/hollow_semicircle_chart/painter.dart';
+import 'painter.dart';
+import 'models.dart';
 
 /// A material design hollow semi-circle chart widget that displays a
 /// percentage value visually as a hollow semi-circle with optional legend and
