@@ -53,10 +53,8 @@ class LineChartPainter extends CustomPainter {
 
         // Check if we are hovering over a data point and tooltips are enabled
         if (style.showTooltips) {
-          final pointIndex = _getDataPointIndexAtPosition(
-            verticalLineX,
-            chartArea,
-          );
+          final pointIndex =
+              _getDataPointIndexAtPosition(verticalLineX, chartArea);
           if (pointIndex != null) {
             // Draw the tooltip if hovering over a data point
             _drawTooltip(canvas, chartArea, pointIndex);
@@ -84,12 +82,10 @@ class LineChartPainter extends CustomPainter {
 
   /// Draws the vertical hover line with custom styling
   void _drawVerticalHoverLine(Canvas canvas, Rect chartArea, double x) {
-    final verticalLinePaint =
-        Paint()
-          ..color = style.verticalLineColor.withOpacity(
-            style.verticalLineOpacity,
-          )
-          ..strokeWidth = style.verticalLineWidth;
+    final verticalLinePaint = Paint()
+      ..color =
+          style.verticalLineColor.withValues(alpha: style.verticalLineOpacity)
+      ..strokeWidth = style.verticalLineWidth;
 
     final startPoint = Offset(x, chartArea.top);
     final endPoint = Offset(x, chartArea.bottom);
@@ -247,11 +243,10 @@ class LineChartPainter extends CustomPainter {
     );
 
     // Draw tooltip border
-    final borderPaint =
-        Paint()
-          ..color = style.tooltipStyle.borderColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.0;
+    final borderPaint = Paint()
+      ..color = style.tooltipStyle.borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         tooltipRect,
@@ -270,10 +265,9 @@ class LineChartPainter extends CustomPainter {
     );
 
     // Highlight the hovered point with a larger circle
-    final highlightPaint =
-        Paint()
-          ..color = style.pointColor.withOpacity(0.8)
-          ..style = PaintingStyle.fill;
+    final highlightPaint = Paint()
+      ..color = style.pointColor.withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
 
     canvas.drawCircle(
       pointPosition,
@@ -282,11 +276,10 @@ class LineChartPainter extends CustomPainter {
     );
 
     // Draw a white border around the highlighted point
-    final highlightBorderPaint =
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0;
+    final highlightBorderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
 
     canvas.drawCircle(
       pointPosition,
@@ -297,12 +290,9 @@ class LineChartPainter extends CustomPainter {
 
   /// Draws the grid lines (both horizontal and vertical) in the chart area.
   void _drawGrid(Canvas canvas, Rect chartArea) {
-    final paint =
-        Paint()
-          ..color = style.gridColor.withOpacity(
-            0.2,
-          ) // Set the grid color with opacity
-          ..strokeWidth = 1; // Set the stroke width for grid lines
+    final paint = Paint()
+      ..color = style.gridColor.withValues(alpha: 0.2)
+      ..strokeWidth = 1; // Set the stroke width for grid lines
 
     // Draw horizontal grid lines
     for (int i = 0; i <= horizontalGridLines; i++) {
@@ -327,15 +317,10 @@ class LineChartPainter extends CustomPainter {
 
   /// Draws the line connecting the data points based on the current progress.
   void _drawLine(Canvas canvas, Rect chartArea) {
-    final linePaint =
-        Paint()
-          ..color =
-              style
-                  .lineColor // Set the line color
-          ..strokeWidth =
-              style
-                  .strokeWidth // Set the stroke width
-          ..style = PaintingStyle.stroke; // Set paint style to stroke
+    final linePaint = Paint()
+      ..color = style.lineColor // Set the line color
+      ..strokeWidth = style.strokeWidth // Set the stroke width
+      ..style = PaintingStyle.stroke; // Set paint style to stroke
 
     // Apply rounded points styling if enabled
     if (style.roundedPoints) {
@@ -383,8 +368,7 @@ class LineChartPainter extends CustomPainter {
     return path;
   }
 
-  /// Creates a curved/smooth line path connecting all points using proper cubic bezier curves.
-  /// FIXED: This method now prevents backward curves and maintains proper continuity.
+  /// Creates a curved/smooth line path connecting all points using bezier curves.
   Path _createCurvedPath(List<Offset> points) {
     if (points.length < 2) return _createStraightPath(points);
 
@@ -397,92 +381,104 @@ class LineChartPainter extends CustomPainter {
       return path;
     }
 
-    // Use cubic bezier curves that maintain proper X-direction progression
+    // Create smooth curves using quadratic bezier curves
     for (int i = 0; i < points.length - 1; i++) {
       final current = points[i];
       final next = points[i + 1];
 
-      // Calculate control points that maintain monotonic X progression
-      final controlPoints = _getMonotonicControlPoints(points, i);
-
-      path.cubicTo(
-        controlPoints.cp1.dx,
-        controlPoints.cp1.dy,
-        controlPoints.cp2.dx,
-        controlPoints.cp2.dy,
-        next.dx,
-        next.dy,
-      );
+      if (i == 0) {
+        // First segment - use quadratic curve
+        final controlPoint = _getControlPoint(
+          current,
+          next,
+          points[i + 2],
+          true,
+        );
+        path.quadraticBezierTo(
+          controlPoint.dx,
+          controlPoint.dy,
+          (current.dx + next.dx) / 2,
+          (current.dy + next.dy) / 2,
+        );
+      } else if (i == points.length - 2) {
+        // Last segment - complete the curve to the final point
+        final controlPoint = _getControlPoint(
+          points[i - 1],
+          current,
+          next,
+          false,
+        );
+        path.quadraticBezierTo(
+          controlPoint.dx,
+          controlPoint.dy,
+          next.dx,
+          next.dy,
+        );
+      } else {
+        // Middle segments - use smooth curves
+        final controlPoint = _getControlPoint(
+          points[i - 1],
+          current,
+          next,
+          false,
+        );
+        path.quadraticBezierTo(
+          controlPoint.dx,
+          controlPoint.dy,
+          (current.dx + next.dx) / 2,
+          (current.dy + next.dy) / 2,
+        );
+      }
     }
 
     return path;
   }
 
-  /// Calculate control points for cubic bezier curves that maintain monotonic progression
-  ControlPoints _getMonotonicControlPoints(List<Offset> points, int index) {
-    final current = points[index];
-    final next = points[index + 1];
+  /// Calculates a control point for smooth bezier curves.
+  Offset _getControlPoint(
+    Offset prev,
+    Offset current,
+    Offset next,
+    bool isFirst,
+  ) {
+    final intensity = style.curveIntensity.clamp(0.0, 1.0);
 
-    // Calculate curve intensity (properly constrained)
-    final intensity = (style.curveIntensity * 0.1).clamp(0.0, 0.4);
+    if (isFirst) {
+      // For the first point, create control point based on current and next
+      final direction = Offset(next.dx - current.dx, next.dy - current.dy);
+      return Offset(
+        current.dx + direction.dx * intensity * 0.3,
+        current.dy + direction.dy * intensity * 0.3,
+      );
+    } else {
+      // For middle points, create smooth control point
+      final prevDirection = Offset(current.dx - prev.dx, current.dy - prev.dy);
+      final nextDirection = Offset(next.dx - current.dx, next.dy - current.dy);
 
-    // Calculate the distance between current and next point
-    final xDistance = next.dx - current.dx;
-    final yDistance = next.dy - current.dy;
+      // Average the directions for smooth transition
+      final avgDirection = Offset(
+        (prevDirection.dx + nextDirection.dx) / 2,
+        (prevDirection.dy + nextDirection.dy) / 2,
+      );
 
-    // Calculate slopes for smooth transitions
-    double currentSlope = 0.0;
-    double nextSlope = 0.0;
-
-    if (index > 0) {
-      final prev = points[index - 1];
-      currentSlope = (current.dy - prev.dy) / (current.dx - prev.dx);
+      return Offset(
+        current.dx + avgDirection.dx * intensity * 0.3,
+        current.dy + avgDirection.dy * intensity * 0.3,
+      );
     }
-
-    if (index < points.length - 2) {
-      final afterNext = points[index + 2];
-      nextSlope = (afterNext.dy - next.dy) / (afterNext.dx - next.dx);
-    }
-
-    // For the first segment, use the slope of the current segment
-    if (index == 0) {
-      currentSlope = yDistance / xDistance;
-    }
-
-    // For the last segment, use the slope of the current segment
-    if (index == points.length - 2) {
-      nextSlope = yDistance / xDistance;
-    }
-
-    // Calculate control points with monotonic X constraints
-    final cp1 = Offset(
-      current.dx + xDistance * intensity,
-      current.dy + (xDistance * intensity * currentSlope),
-    );
-
-    final cp2 = Offset(
-      next.dx - xDistance * intensity,
-      next.dy - (xDistance * intensity * nextSlope),
-    );
-
-    return ControlPoints(cp1: cp1, cp2: cp2);
   }
 
   /// Draws the individual points on the line chart.
   void _drawPoints(Canvas canvas, Rect chartArea) {
-    final pointPaint =
-        Paint()
-          ..color =
-              style
-                  .pointColor // Set the point color
-          ..style = PaintingStyle.fill; // Set paint style to fill
+    final pointPaint = Paint()
+      ..color = style.pointColor // Set the point color
+      ..style = PaintingStyle.fill; // Set paint style to fill
 
     final points = _getPointCoordinates(
       chartArea,
     ); // Get coordinates of data points
-    final progressPoints =
-        (points.length * progress)
-            .floor(); // Determine how many points to draw based on progress
+    final progressPoints = (points.length * progress)
+        .floor(); // Determine how many points to draw based on progress
 
     // Draw each point on the canvas
     for (int i = 0; i < progressPoints; i++) {
@@ -496,8 +492,7 @@ class LineChartPainter extends CustomPainter {
 
   /// Draws the labels for each data point along the X-axis.
   void _drawLabels(Canvas canvas, Rect chartArea) {
-    final textStyle =
-        style.labelStyle ??
+    final textStyle = style.labelStyle ??
         TextStyle(
           color: style.lineColor, // Default label color if none is provided
           fontSize: 12, // Default font size
@@ -505,8 +500,7 @@ class LineChartPainter extends CustomPainter {
 
     // Draw each label based on the data points
     for (int i = 0; i < data.length; i++) {
-      final x =
-          chartArea.left +
+      final x = chartArea.left +
           (chartArea.width / (data.length - 1)) * i; // Calculate the X position
       final textSpan = TextSpan(
         text: data[i].label, // Set the label text
@@ -533,12 +527,10 @@ class LineChartPainter extends CustomPainter {
   List<Offset> _getPointCoordinates(Rect chartArea) {
     if (data.isEmpty) return []; // Return empty if no data
 
-    final maxValue = data
-        .map((point) => point.value)
-        .reduce(max); // Find max value
-    final minValue = data
-        .map((point) => point.value)
-        .reduce(min); // Find min value
+    final maxValue =
+        data.map((point) => point.value).reduce(max); // Find max value
+    final minValue =
+        data.map((point) => point.value).reduce(min); // Find min value
     final valueRange = maxValue - minValue; // Calculate range of values
 
     // Handle case where all values are the same
@@ -552,13 +544,11 @@ class LineChartPainter extends CustomPainter {
 
     // Generate a list of Offset points based on the normalized values
     return List.generate(data.length, (i) {
-      final x =
-          chartArea.left +
+      final x = chartArea.left +
           (chartArea.width / (data.length - 1)) * i; // Calculate X position
       final normalizedValue =
           (data[i].value - minValue) / valueRange; // Normalize Y value
-      final y =
-          chartArea.bottom -
+      final y = chartArea.bottom -
           (normalizedValue * chartArea.height); // Calculate Y position
       return Offset(x, y); // Return the Offset point
     });
@@ -576,12 +566,4 @@ class LineChartPainter extends CustomPainter {
         oldDelegate.hoverPosition !=
             hoverPosition; // Check hover position change
   }
-}
-
-/// Helper class to store control points for cubic bezier curves
-class ControlPoints {
-  final Offset cp1;
-  final Offset cp2;
-
-  ControlPoints({required this.cp1, required this.cp2});
 }
