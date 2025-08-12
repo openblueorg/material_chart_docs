@@ -1,8 +1,11 @@
 // line_chart_widget.dart
-import 'package:chat_test_01/material_charts/material_charts.dart';
+// import 'package:chat_test_01/material_charts/material_charts.dart';
+// import '../../material_charts/material_charts.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../material_charts/material_charts.dart';
 import '../constants.dart';
 import 'models.dart';
 import 'provider.dart';
@@ -872,7 +875,9 @@ class _LineChartWidgetState extends State<LineChartWidget> {
                 _chartConfig = _chartConfig.copyWith(verticalLineWidth: value);
               }),
               (style) => setState(() {
-                _chartConfig = _chartConfig.copyWith(verticalLineStyle: style);
+                _chartConfig = _chartConfig.copyWith(
+                  verticalLineStyle: style as LineStyle,
+                );
               }),
               (value) => setState(() {
                 _chartConfig = _chartConfig.copyWith(

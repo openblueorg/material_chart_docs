@@ -1,5 +1,10 @@
-import 'package:chat_test_01/charts/constants.dart';
-import 'package:chat_test_01/charts/line_chart/line_chart.dart';
+// import 'package:chat_test_01/charts/constants.dart';
+// import 'package:chat_test_01/charts/line_chart/line_chart.dart';
+import 'package:material_charts_docs/charts/constants.dart';
+import 'package:material_charts_docs/charts/line_chart/line_chart.dart';
+
+// import '../../material_charts/material_charts.dart';
+
 import 'package:flutter/material.dart';
 
 import 'charts/area_chart/area_chart_widget.dart';

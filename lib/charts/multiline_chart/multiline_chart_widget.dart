@@ -1,5 +1,6 @@
 // multiline_chart_widget.dart
-import 'package:chat_test_01/material_charts/material_charts.dart';
+// import 'package:chat_test_01/material_charts/material_charts.dart';
+import '../../material_charts/material_charts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -1848,16 +1849,11 @@ class _MultiLineChartWidgetState extends State<MultiLineChartWidget> {
             isMobile,
           ),
           SizedBox(height: isMobile ? 12 : 16),
-          _buildClassReference(
-            'ChartAnimation',
-            'Animation configuration',
-            [
-              'Duration duration - Animation duration (default: 1000ms)',
-              'Curve curve - Animation curve (default: Curves.easeInOut)',
-              'bool enabled - Enable animations (default: true)',
-            ],
-            isMobile,
-          ),
+          _buildClassReference('ChartAnimation', 'Animation configuration', [
+            'Duration duration - Animation duration (default: 1000ms)',
+            'Curve curve - Animation curve (default: Curves.easeInOut)',
+            'bool enabled - Enable animations (default: true)',
+          ], isMobile),
         ],
       ),
     );
