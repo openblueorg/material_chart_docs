@@ -120,6 +120,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.17"
+  material_charts:
+    dependency: "direct main"
+    description:
+      name: material_charts
+      sha256: fe95c0c627f89b047f0303b0b446e3bf08b34165168e0446d0fa7f3202257ad5
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.29"
   material_color_utilities:
     dependency: transitive
     description:

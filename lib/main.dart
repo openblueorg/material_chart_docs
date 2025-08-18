@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:material_charts/material_charts.dart';
 import 'dart:async';
 import 'dart:math';
-import 'material_charts/material_charts.dart';
 
 void main() {
   runApp(const MyApp());
